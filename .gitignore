@@ -1,0 +1,31 @@
+node_modules/
+.expo/
+.expo-shared/
+npm-debug.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+web-build/
+dist/
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+.expo/
+
+# Helper scripts and troubleshooting files (not needed for submission)
+start-expo.sh
+FIX_EMFILE_ERROR.md
+QUICK_SWITCH.md
+App_old.js
+
+# Backup files
+*.backup
+*_backup.*
+*_old.js
