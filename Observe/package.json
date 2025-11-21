@@ -1,0 +1,28 @@
+{
+  "name": "observeplus",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web"
+  },
+  "dependencies": {
+<<<<<<< HEAD
+    "@react-native-async-storage/async-storage": "^1.23.1",
+    "expo": "~54.0.22",
+    "expo-file-system": "~19.0.17",
+    "expo-sharing": "~13.0.1",
+=======
+    "expo": "~54.0.22",
+>>>>>>> 7dff76bb20e18925ef9ac6916f76fe04b0a2e3d3
+    "expo-status-bar": "~3.0.8",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "react-native": "0.81.5",
+    "react-native-signature-canvas": "^5.0.1",
+    "react-native-web": "^0.21.0"
+  },
+  "private": true
+}
