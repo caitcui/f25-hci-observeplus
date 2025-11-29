@@ -269,7 +269,13 @@ export default function HistoryScreen({ onBack, onViewSession, onDeleteSession, 
   };
 
   const handleBackFromDetail = () => {
-    setSelectedSession(null);
+    // setSelectedSession(null);
+    // navigate back to calendar
+    if (onBack) {
+      onBack();
+    } else{
+      setSelectedSession(null);
+    }
   };
 
   const handleClearSearch = () => {

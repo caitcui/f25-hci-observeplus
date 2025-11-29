@@ -11,6 +11,8 @@ import {
   Alert,
   Keyboard,
   Modal,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -103,7 +105,7 @@ export default function SessionNoteScreen({ appointment, onSubmit, onBack, onDat
         // Load suggested tags based on usage history
         // Get current options (they may have been updated)
         const currentPeopleOptions = ['The RBT', 'Client', 'Supervisor', 'Parent', 'Peer'];
-        const currentActionsOptions = ['escaping', 'pushed', 'followed guidance', 'had tantrum', 'engaged', 'refused'];
+        const currentActionsOptions = ['escaping', 'pushed', 'followed guidance', 'had a tantrum episode', 'engaged', 'refused'];
         
         const allAvailableTags = [
           ...defaultCommonTags,
@@ -211,11 +213,11 @@ export default function SessionNoteScreen({ appointment, onSubmit, onBack, onDat
 
   const handleDropdownSelect = (category, value, type) => {
     if (type === 'people') {
-      setPeopleCategory(value);
+      setPeopleCategory(''); // reset to placeholder
       setShowPeopleDropdown(false);
       setPeopleSearchText('');
     } else {
-      setActionsCategory(value);
+      setActionsCategory(''); // reset to placeholder
       setShowActionsDropdown(false);
       setActionsSearchText('');
     }
@@ -249,12 +251,14 @@ export default function SessionNoteScreen({ appointment, onSubmit, onBack, onDat
       }
       // Clear search to show the new tag
       setPeopleSearchText('');
+      setPeopleCategory(''); // reset to placeholder
     } else {
       if (!actionsOptions.includes(trimmedTag)) {
         setActionsOptions([...actionsOptions, trimmedTag]);
       }
       // Clear search to show the new tag
       setActionsSearchText('');
+      setActionsCategory(''); // reset to placeholder
     }
 
     // Add to common tags if not already there
@@ -312,7 +316,17 @@ export default function SessionNoteScreen({ appointment, onSubmit, onBack, onDat
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
 
-      <ScrollView style={styles.scrollView} keyboardShouldPersistTaps="handled">
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={0}
+      >
+
+      <ScrollView 
+        style={styles.scrollView} 
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{ paddingBottom: 40 }}
+      >
         
         {/* Header */}
         <View style={styles.header}>
@@ -542,7 +556,7 @@ export default function SessionNoteScreen({ appointment, onSubmit, onBack, onDat
           </TouchableOpacity>
 
         </View>
-      </ScrollView>
+      </ScrollView></KeyboardAvoidingView>
 
       {/* Add Tag Modal */}
       <Modal
