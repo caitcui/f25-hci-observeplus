@@ -204,11 +204,11 @@ export default function SessionNoteScreen({ appointment, onSubmit, onBack, onDat
   const handleTagPress = (tag) => {
     insertIntoNotes(tag);
 
-    if (selectedTags.includes(tag)) {
-      setSelectedTags(selectedTags.filter(t => t !== tag));
-    } else {
-      setSelectedTags([...selectedTags, tag]);
-    }
+    // if (selectedTags.includes(tag)) {
+    //   setSelectedTags(selectedTags.filter(t => t !== tag));
+    // } else {
+    //   setSelectedTags([...selectedTags, tag]);
+    // }
   };
 
   const handleDropdownSelect = (category, value, type) => {
@@ -370,6 +370,7 @@ export default function SessionNoteScreen({ appointment, onSubmit, onBack, onDat
               {commonTags.map((tag, index) => (
                 <TouchableOpacity
                   key={index}
+                  // styles={styles.tag}
                   style={[
                     styles.tag,
                     selectedTags.includes(tag) && styles.tagSelected,
@@ -377,6 +378,7 @@ export default function SessionNoteScreen({ appointment, onSubmit, onBack, onDat
                   onPress={() => handleTagPress(tag)}
                 >
                   <Text
+                    // style={styles.tagText} 
                     style={[
                       styles.tagText,
                       selectedTags.includes(tag) && styles.tagTextSelected,
@@ -644,33 +646,33 @@ const styles = StyleSheet.create({
 
   content: { padding: 20 },
   instructions: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: fonts.medium,
     color: colors.accent3,
-    lineHeight: 20,
+    lineHeight: 24,
     marginBottom: 24,
   },
 
   section: { marginBottom: 24 },
   sectionLabel: {
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: fonts.semiBold,
     color: colors.accent3,
     letterSpacing: 0.5,
     marginBottom: 12,
   },
 
-  tagsContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  tagsContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   tag: {
     backgroundColor: 'rgba(239, 92, 0, 0.3)',
     borderWidth: 2,
     borderColor: '#EF5C00',
-    borderRadius: 6,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
   },
   tagSelected: { backgroundColor: 'rgba(2, 62, 138, 0.3)', borderColor: '#023E8A' },
-  tagText: { fontSize: 13, fontWeight: fonts.medium, color: '#F4542C' },
+  tagText: { fontSize: 16, fontWeight: fonts.medium, color: '#F4542C' },
   tagTextSelected: { color: '#023E8A' },
 
   dropdownRow: { flexDirection: 'row', gap: 12 },
@@ -682,20 +684,20 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     borderWidth: 2,
     borderColor: colors.accent3,
-    borderRadius: 6,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
+    borderRadius: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
   },
-  dropdownText: { fontSize: 14, fontWeight: fonts.medium, color: colors.accent3 },
+  dropdownText: { fontSize: 16, fontWeight: fonts.medium, color: colors.accent3 },
   dropdownMenu: {
     position: 'absolute',
-    top: 70, // Account for dropdown + subtitle
+    top: 80, // Account for larger dropdown + subtitle
     left: 0,
     right: 0,
     backgroundColor: colors.primary,
     borderWidth: 2,
     borderColor: colors.accent1,
-    borderRadius: 6,
+    borderRadius: 8,
     zIndex: 1000,
     elevation: 5,
     shadowColor: '#000',
@@ -711,15 +713,15 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderBottomWidth: 2,
     borderBottomColor: colors.accent2,
     backgroundColor: colors.accent2,
   },
   searchInput: {
     flex: 1,
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: fonts.medium,
     color: colors.accent3,
     marginLeft: 8,
@@ -727,14 +729,14 @@ const styles = StyleSheet.create({
   },
 
   dropdownItem: {
-    paddingVertical: 12,
-    paddingHorizontal: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
     borderBottomWidth: 1,
     borderBottomColor: colors.accent2,
   },
-  dropdownItemText: { fontSize: 14, fontWeight: fonts.medium, color: colors.accent3 },
+  dropdownItemText: { fontSize: 16, fontWeight: fonts.medium, color: colors.accent3 },
 
-  tapToType: { fontSize: 12, fontWeight: fonts.medium, color: colors.accent3, marginBottom: 12 },
+  tapToType: { fontSize: 13, fontWeight: fonts.medium, color: colors.accent3, marginBottom: 12 },
 
   notesBox: {
     backgroundColor: colors.primary,
@@ -745,10 +747,10 @@ const styles = StyleSheet.create({
     minHeight: 250,
   },
   notesInput: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: fonts.medium,
     color: colors.accent3,
-    lineHeight: 22,
+    lineHeight: 24,
     minHeight: 220,
   },
 
@@ -772,13 +774,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.accent1,
-    paddingVertical: 10,
-    borderRadius: 6,
+    paddingVertical: 12,
+    borderRadius: 8,
     marginBottom: 16,
   },
   addSentenceText: {
     marginLeft: 8,
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: fonts.semiBold,
     color: colors.primary,
   },
@@ -787,23 +789,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     marginBottom: 16,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
     backgroundColor: colors.accent2,
     borderRadius: 6,
   },
   autosaveText: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: fonts.medium,
     color: colors.accent3,
   },
   autosaveTimestamp: {
-    fontSize: 11,
+    fontSize: 12,
     color: colors.accent3,
     marginLeft: 'auto',
   },
   categorySubtitle: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: fonts.semiBold,
     color: colors.accent3,
     marginBottom: 8,
@@ -811,7 +813,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   dropdownSubtitle: {
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: fonts.medium,
     color: colors.accent3,
     marginTop: 4,
@@ -821,15 +823,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
     borderTopWidth: 1,
     borderTopColor: colors.accent2,
     backgroundColor: colors.accent2,
     gap: 6,
   },
   addTagButtonText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: fonts.semiBold,
     color: colors.secondary,
   },
@@ -861,7 +863,7 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.accent2,
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: fonts.bold,
     color: colors.accent3,
   },
@@ -869,7 +871,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   modalLabel: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: fonts.semiBold,
     color: colors.accent3,
     marginBottom: 8,
@@ -879,8 +881,8 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: colors.accent3,
     borderRadius: 8,
-    padding: 12,
-    fontSize: 14,
+    padding: 14,
+    fontSize: 16,
     color: colors.accent3,
     marginBottom: 20,
   },
@@ -890,25 +892,25 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalCancelButton: {
-    paddingVertical: 12,
+    paddingVertical: 14,
     paddingHorizontal: 24,
     borderRadius: 8,
     borderWidth: 2,
     borderColor: colors.accent3,
   },
   modalCancelButtonText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: fonts.semiBold,
     color: colors.accent3,
   },
   modalSaveButton: {
-    paddingVertical: 12,
+    paddingVertical: 14,
     paddingHorizontal: 24,
     borderRadius: 8,
     backgroundColor: colors.secondary,
   },
   modalSaveButtonText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: fonts.semiBold,
     color: colors.primary,
   },
