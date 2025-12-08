@@ -627,7 +627,7 @@ export default function HistoryScreen({ onBack, onViewSession, onDeleteSession, 
                 >
                   <MaterialIcons 
                     name="delete-outline" 
-                    size={20} 
+                    size={24} 
                     color="#DC2626" 
                   />
                 </TouchableOpacity>
@@ -809,6 +809,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderWidth: 1,
     borderColor: colors.accent3,
+    position: 'relative',
   },
   sessionItemHeader: {
     flexDirection: 'row',
@@ -855,7 +856,7 @@ const styles = StyleSheet.create({
     borderColor: colors.accent1,
   },
   sessionTagText: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: fonts.medium,
     color: colors.accent1,
   },
@@ -989,7 +990,11 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   deleteIconButton: {
-    padding: 4,
+    padding: 8,
+    position: 'absolute',
+    bottom: 10, 
+    right: 12, 
+    zIndex: 10,
   },
   navigationBar: {
     backgroundColor: colors.secondary,

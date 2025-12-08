@@ -1,6 +1,5 @@
 /**
  * Calendar API service
- * TODO: Implement actual calendar API integration
  */
 
 /**
@@ -11,7 +10,6 @@
  */
 export const getCalendarEvents = async (startDate, endDate) => {
   try {
-    // TODO: Replace with actual API call
     const response = await fetch(`/api/calendar/events?start=${startDate}&end=${endDate}`);
     
     if (!response.ok) {
