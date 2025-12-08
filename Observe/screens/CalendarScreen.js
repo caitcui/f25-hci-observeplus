@@ -826,7 +826,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    padding: 16,
+    marginLeft: '10%',
+    padding: 14,
     backgroundColor: colors.primary,
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -838,7 +839,7 @@ const styles = StyleSheet.create({
   },
   viewToggleActive: {
     backgroundColor: colors.secondary,
-    paddingVertical: 8,
+    paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 6,
   },
@@ -851,12 +852,12 @@ const styles = StyleSheet.create({
   viewToggleTextActive: {
     color: colors.primary,
     fontWeight: fonts.semiBold,
-    fontSize: 14,
+    fontSize: 16,
   },
   viewToggleText: {
     color: colors.accent3,
     fontWeight: fonts.medium,
-    fontSize: 14,
+    fontSize: 16,
   },
   historyButton: {
     backgroundColor: colors.secondary,
@@ -871,7 +872,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 10,
     backgroundColor: colors.primary,
     borderBottomWidth: 0,
   },

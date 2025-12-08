@@ -48,7 +48,12 @@ export default function HistoryScreen({ onBack, onViewSession, onDeleteSession, 
       const savedSessions = await getItem(COMPLETED_SESSIONS_KEY, []);
       if (Array.isArray(savedSessions) && savedSessions.length > 0) {
         // Sort by timestamp (newest first - reverse chronological)
-        const sorted = savedSessions.sort((a, b) => b.timestamp - a.timestamp);
+        const sorted = savedSessions.sort((a, b) =>  {
+          // Parse dates (MM/DD/YY format)
+          const dateA = new Date('20' + a.date.split('/')[2], a.date.split('/')[0] - 1, a.date.split('/')[1]);
+          const dateB = new Date('20' + b.date.split('/')[2], b.date.split('/')[0] - 1, b.date.split('/')[1]);
+          return dateB - dateA; // Newest first
+        });
         setSessions(sorted);
         console.log('✅ Loaded', sorted.length, 'completed sessions');
       } else {
@@ -79,7 +84,7 @@ export default function HistoryScreen({ onBack, onViewSession, onDeleteSession, 
     // Filter by date range
     if (dateFilter !== 'All Time') {
       const now = Date.now();
-      let cutoffDate = 0;
+      let cutoffDate;
 
       switch (dateFilter) {
         case 'Last Week':
@@ -89,11 +94,12 @@ export default function HistoryScreen({ onBack, onViewSession, onDeleteSession, 
           cutoffDate = now - (30 * 24 * 60 * 60 * 1000);
           break;
         default:
-          cutoffDate = 0;
+          cutoffDate = new Date(0);
       }
 
       filtered = filtered.filter(session => {
-        return session.timestamp >= cutoffDate;
+        const sessionDate = new Date('20' + session.date.split('/')[2], session.date.split('/')[0] - 1, session.date.split('/')[1]);
+        return sessionDate >= cutoffDate;
       });
     }
 
@@ -583,7 +589,7 @@ export default function HistoryScreen({ onBack, onViewSession, onDeleteSession, 
               >
                 <View style={styles.sessionItemHeader}>
                   <View style={styles.sessionItemLeft}>
-                    <Text style={styles.sessionDate}>{formatDate(session.timestamp)}</Text>
+                    <Text style={styles.sessionDate}>{session.date}</Text>
                     <Text style={styles.sessionClient}>{session.client}</Text>
                   </View>
                   <MaterialIcons 
@@ -692,7 +698,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   exportAllText: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: fonts.semiBold,
     color: colors.primary,
   },
@@ -720,7 +726,7 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: fonts.medium,
     color: colors.accent3,
     paddingVertical: 12,
@@ -746,7 +752,7 @@ const styles = StyleSheet.create({
   },
   dateFilterText: {
     flex: 1,
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: fonts.medium,
     color: colors.accent3,
   },
@@ -776,7 +782,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accent2,
   },
   dateFilterOptionText: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: fonts.medium,
     color: colors.accent3,
   },
@@ -788,7 +794,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   resultCountText: {
-    fontSize: 12,
+    fontSize: 15,
     fontWeight: fonts.medium,
     color: colors.accent3,
     textAlign: 'center',
@@ -814,13 +820,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   sessionDate: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: fonts.semiBold,
     color: colors.accent3,
     marginBottom: 4,
   },
   sessionClient: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: fonts.bold,
     color: colors.accent3,
   },
@@ -828,7 +834,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   sessionNotesPreview: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: fonts.medium,
     color: colors.accent3,
     lineHeight: 20,
@@ -849,7 +855,7 @@ const styles = StyleSheet.create({
     borderColor: colors.accent1,
   },
   sessionTagText: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: fonts.medium,
     color: colors.accent1,
   },
@@ -900,7 +906,7 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   detailSectionTitle: {
-    fontSize: 11,
+    fontSize: 16,
     fontWeight: fonts.semiBold,
     color: colors.accent3,
     letterSpacing: 0.5,
@@ -912,13 +918,13 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   detailLabel: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: fonts.semiBold,
     color: colors.accent3,
     width: 100,
   },
   detailValue: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: fonts.medium,
     color: colors.accent3,
     flex: 1,
@@ -931,10 +937,10 @@ const styles = StyleSheet.create({
     borderColor: colors.accent3,
   },
   notesText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: fonts.medium,
     color: colors.accent3,
-    lineHeight: 22,
+    lineHeight: 24,
   },
   tagsContainer: {
     flexDirection: 'row',
@@ -945,12 +951,12 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(239, 92, 0, 0.3)',
     borderWidth: 2,
     borderColor: '#EF5C00',
-    borderRadius: 6,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
   },
   tagText: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: fonts.medium,
     color: '#F4542C',
   },
@@ -966,7 +972,7 @@ const styles = StyleSheet.create({
   },
   signatureImage: {
     width: '100%',
-    height: 200,
+    height: 180,
     borderRadius: 8,
   },
   headerButtons: {
@@ -987,7 +993,7 @@ const styles = StyleSheet.create({
   },
   navigationBar: {
     backgroundColor: colors.secondary,
-    paddingVertical: 8,
+    paddingVertical: 12,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
     borderBottomColor: colors.accent1,
@@ -995,10 +1001,10 @@ const styles = StyleSheet.create({
   backToScheduleButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
   },
   backToScheduleText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: fonts.semiBold,
     color: colors.primary,
   },

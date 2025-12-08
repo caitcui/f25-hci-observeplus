@@ -23,43 +23,95 @@ export default function AddSessionScreen({ onSave, onBack }) {
   const [clients, setClients] = useState('');
 
   // Set default date to today in mm/dd/yy format
-  React.useEffect(() => {
-    const today = new Date();
-    const dayNum = today.getDate();
-    const monthNum = today.getMonth() + 1;
-    const yearNum = today.getFullYear();
+  // React.useEffect(() => {
+  //   const today = new Date();
+  //   const dayNum = today.getDate();
+  //   const monthNum = today.getMonth() + 1;
+  //   const yearNum = today.getFullYear();
     
-    // Format as mm/dd/yy
-    setMonth(monthNum.toString().padStart(2, '0'));
-    setDay(dayNum.toString().padStart(2, '0'));
-    setYear(yearNum.toString().slice(-2)); // Last 2 digits of year
-  }, []);
+  //   // Format as mm/dd/yy
+  //   setMonth(monthNum.toString().padStart(2, '0'));
+  //   setDay(dayNum.toString().padStart(2, '0'));
+  //   setYear(yearNum.toString().slice(-2)); // Last 2 digits of year
+  // }, []);
 
-  // Helper to normalize and validate time
+  // Helper to normalize time, now handling minutes (e.g., 12:30 PM -> 12:30 PM)
   const normalizeTime = (timeStr) => {
     if (!timeStr) return null;
-    
-    // Remove extra spaces and convert to uppercase
     let normalized = timeStr.trim().toUpperCase();
     
-    // Handle formats like "8 AM", "8:00 AM", "8:00AM", "8AM"
-    // Remove colons if present
-    normalized = normalized.replace(/:/g, '');
+    // Handle formats with colon (e.g., 12:30PM)
+    // Ensure space between minutes and AM/PM (e.g., 12:30 PM)
+    normalized = normalized.replace(/(\d{1,2})(:?)(\d{0,2})\s*(AM|PM)/i, (match, hour, colon, minute, period) => {
+      const min = minute.length === 0 ? '00' : minute.padStart(2, '0');
+      return `${hour.padStart(2, '0')}:${min} ${period.toUpperCase()}`;
+    });
     
-    // Ensure space between number and AM/PM
-    normalized = normalized.replace(/(\d+)(AM|PM)/i, '$1 $2');
+    // Handle formats without colon (e.g., 8 AM)
+    normalized = normalized.replace(/^(\d{1,2})\s*(AM|PM)$/i, (match, hour, period) => {
+      return `${hour.padStart(2, '0')}:00 ${period.toUpperCase()}`;
+    });
     
-    return normalized.trim();
+    // Final clean up and basic validation for format: HH:MM AM/PM
+    const timeRegex = /^(\d{2}):(\d{2})\s*(AM|PM)$/;
+    return timeRegex.test(normalized) ? normalized : null;
   };
 
-  // Helper to validate time format
-  const isValidTime = (timeStr) => {
-    if (!timeStr) return false;
-    
+  // Helper to convert time string to minutes from midnight
+  const timeToMinutesFromMidnight = (timeStr) => {
     const normalized = normalizeTime(timeStr);
-    // Match: number (1-12) followed by AM or PM
-    const timeRegex = /^(\d{1,2})\s*(AM|PM)$/i;
-    return timeRegex.test(normalized);
+    if (!normalized) return -1;
+    
+    const timeRegex = /^(\d{2}):(\d{2})\s*(AM|PM)$/i;
+    const match = normalized.match(timeRegex);
+    
+    let hour = parseInt(match[1]);
+    const minute = parseInt(match[2]);
+    const period = match[3].toUpperCase();
+    
+    // Convert to 24-hour
+    if (period === 'PM' && hour !== 12) hour += 12;
+    if (period === 'AM' && hour === 12) hour = 0; // 12 AM (midnight)
+    
+    return hour * 60 + minute;
+  };
+
+  // Helper to validate time format (7:00 AM to 5:00 PM)
+  const isValidTime = (timeStr) => {
+    const normalized = normalizeTime(timeStr);
+    if (!normalized) return false;
+    
+    const timeRegex = /^(\d{2}):(\d{2})\s*(AM|PM)$/i;
+    const match = normalized.match(timeRegex);
+    if (!match) return false;
+    
+    let hour = parseInt(match[1]);
+    const minute = parseInt(match[2]);
+    const period = match[3].toUpperCase();
+
+    if (minute < 0 || minute > 59) return false;
+
+    // Convert to 24-hour format for easy comparison
+    let hour24 = hour;
+    if (period === 'PM' && hour !== 12) hour24 += 12;
+    if (period === 'AM' && hour === 12) hour24 = 0; // 12 AM (midnight)
+    
+    // The range is 7:00 AM (420 minutes) to 5:00 PM (17 * 60 = 1020 minutes)
+    const totalMinutes = hour24 * 60 + minute;
+    const minMinutes = 7 * 60; // 7 AM
+    const maxMinutes = 17 * 60; // 5 PM
+    
+    return totalMinutes >= minMinutes && totalMinutes <= maxMinutes;
+  };
+
+  // Helper to compare times
+  const isEndTimeAfterStart = (startTimeStr, endTimeStr) => {
+    const startMinutes = timeToMinutesFromMidnight(startTimeStr);
+    const endMinutes = timeToMinutesFromMidnight(endTimeStr);
+    
+    if (startMinutes === -1 || endMinutes === -1) return false;
+
+    return endMinutes > startMinutes;
   };
 
   const handleSave = () => {
@@ -89,31 +141,40 @@ export default function AddSessionScreen({ onSave, onBack }) {
       fullYear = 2000 + yearNum;
     }
     
-    // Validate date ranges
-    if (dayNum < 1 || dayNum > 31 || monthNum < 1 || monthNum > 12 || fullYear < 2000) {
-      Alert.alert('Invalid Date', 'Please enter a valid date (Day: 1-31, Month: 1-12, Year: 00-99)');
-      console.log('Validation failed: Date out of range');
+    // Use Date object for a robust check (e.g., checking for 02/30/25)
+    const dateObj = new Date(fullYear, monthNum - 1, dayNum);
+    if (
+      dateObj.getMonth() + 1 !== monthNum || 
+      dateObj.getDate() !== dayNum || 
+      dateObj.getFullYear() !== fullYear
+    ) {
+      Alert.alert('Invalid Date', 'Please enter a valid calendar date (e.g., 12/25/25)');
+      console.log('Validation failed: Invalid date object or range');
       return;
     }
 
-    // Validate time format (more flexible)
+    // --- Time Validation ---
     const normalizedStartTime = normalizeTime(startTime);
     const normalizedEndTime = normalizeTime(endTime);
     
-    if (!isValidTime(startTime) || !isValidTime(endTime)) {
-      Alert.alert(
-        'Invalid Time', 
-        'Please enter time in format like "8 AM" or "2 PM"\n\nExamples: "8 AM", "2 PM", "10:30 AM"'
-      );
-      console.log('Validation failed: Invalid time format', { startTime, endTime, normalizedStartTime, normalizedEndTime });
+    if (!normalizedStartTime || !normalizedEndTime) {
+      Alert.alert('Invalid Time Format', 'Times must be in a valid format like "8 AM" or "1:30 PM"');
+      console.log('Validation failed: Invalid time format', { normalizedStartTime, normalizedEndTime });
       return;
     }
 
-    // Format date
-    const dateObj = new Date(fullYear, monthNum - 1, dayNum);
-    if (isNaN(dateObj.getTime())) {
-      Alert.alert('Invalid Date', 'Please enter a valid date');
-      console.log('Validation failed: Invalid date object');
+    if (!isValidTime(normalizedStartTime) || !isValidTime(normalizedEndTime)) {
+      Alert.alert(
+        'Invalid Time Range', 
+        'Times must be within the business hours of 7:00 AM to 5:00 PM.'
+      );
+      console.log('Validation failed: Time out of business hours');
+      return;
+    }
+
+    if (!isEndTimeAfterStart(normalizedStartTime, normalizedEndTime)) {
+      Alert.alert('Invalid Time', 'End time must be after start time.');
+      console.log('Validation failed: End time not after start time');
       return;
     }
 
@@ -121,7 +182,7 @@ export default function AddSessionScreen({ onSave, onBack }) {
     const formattedDate = `${monthNum.toString().padStart(2, '0')}/${dayNum.toString().padStart(2, '0')}/${fullYear.toString().slice(-2)}`;
     const dayAbbr = dateObj.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase();
 
-    // Use normalized times
+    // Create appointment with normalized times
     const newAppointment = {
       id: Date.now(),
       date: formattedDate,
@@ -164,7 +225,7 @@ export default function AddSessionScreen({ onSave, onBack }) {
         <View style={styles.content}>
           {/* Date Section */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>DATE</Text>
+            <Text style={styles.sectionTitle}>DATE (MM/DD/YY)</Text>
             <View style={styles.dateRow}>
               <View style={styles.dateField}>
                 <Text style={styles.label}>Month</Text>
@@ -207,7 +268,7 @@ export default function AddSessionScreen({ onSave, onBack }) {
 
           {/* Time Section */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>TIME</Text>
+            <Text style={styles.sectionTitle}>TIME (e.g., 8:30 AM)</Text>
             <View style={styles.timeRow}>
               <View style={styles.timeField}>
                 <Text style={styles.label}>Start Time</Text>
@@ -215,7 +276,7 @@ export default function AddSessionScreen({ onSave, onBack }) {
                   style={styles.input}
                   value={startTime}
                   onChangeText={setStartTime}
-                  placeholder=""
+                  placeholder="e.g. 7 AM"
                   placeholderTextColor={colors.accent3}
                   autoCapitalize="characters"
                 />
@@ -226,7 +287,7 @@ export default function AddSessionScreen({ onSave, onBack }) {
                   style={styles.input}
                   value={endTime}
                   onChangeText={setEndTime}
-                  placeholder=""
+                  placeholder="e.g. 5 PM"
                   placeholderTextColor={colors.accent3}
                   autoCapitalize="characters"
                 />
@@ -290,7 +351,7 @@ const styles = StyleSheet.create({
   content: { padding: 20 },
   section: { marginBottom: 24 },
   sectionTitle: {
-    fontSize: 11,
+    fontSize: 15,
     fontWeight: fonts.semiBold,
     color: colors.accent3,
     letterSpacing: 0.5,
@@ -311,7 +372,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   label: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: fonts.semiBold,
     color: colors.accent3,
     letterSpacing: 0.5,
@@ -322,7 +383,8 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: colors.accent3,
     borderRadius: 8,
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     fontSize: 14,
     fontWeight: fonts.medium,
     color: colors.accent3,

@@ -44,9 +44,6 @@ export default function SessionNoteScreen({ appointment, onSubmit, onBack, onDat
   const [newTagText, setNewTagText] = useState('');
   const [addTagType, setAddTagType] = useState(null); // 'people' or 'actions'
   const saveIntervalRef = useRef(null);
-  const notesInputRef = useRef(null);
-  const [selection, setSelection] = useState({ start: 0, end: 0 });
-
 
   const AUTOSAVE_INTERVAL = 3000; // 3 seconds
 
@@ -63,7 +60,7 @@ export default function SessionNoteScreen({ appointment, onSubmit, onBack, onDat
   const [commonTags, setCommonTags] = useState(defaultCommonTags);
 
   const [peopleOptions, setPeopleOptions] = useState(['The RBT', 'Client', 'Supervisor', 'Parent', 'Peer']);
-  const [actionsOptions, setActionsOptions] = useState(['escaping', 'pushed', 'followed guidance', 'had tantrum', 'engaged', 'refused']);
+  const [actionsOptions, setActionsOptions] = useState(['escaping', 'pushed', 'followed guidance', 'had a tantrum episode', 'engaged', 'refused']);
 
   const filteredPeopleOptions = peopleOptions.filter(option =>
     option.toLowerCase().includes(peopleSearchText.toLowerCase())
@@ -193,35 +190,25 @@ export default function SessionNoteScreen({ appointment, onSubmit, onBack, onDat
   }, [notes, selectedTags, peopleCategory, actionsCategory, isInitialized]);
   
   const insertIntoNotes = (value) => {
-    const start = selection.start;
-    const end = selection.end;
+    const blankIndex = notes.indexOf('__________');
 
-    const before = notes.substring(0, start);
-    const after = notes.substring(end);
-
-    const newNotes = before + value + after;
-    setNotes(newNotes);
-
-    // Find the next blank after inserted value
-    const nextBlankIndex = newNotes.indexOf('__________', start + value.length);
-    const newCursorPosition = nextBlankIndex !== -1 ? nextBlankIndex : start + value.length;
-
-    setTimeout(() => {
-      notesInputRef.current?.focus();
-      setSelection({ start: newCursorPosition, end: newCursorPosition });
-    }, 0);
+    if (blankIndex !== -1) {
+      const before = notes.substring(0, blankIndex);
+      const after = notes.substring(blankIndex + 10);
+      setNotes(before + value + after);
+    } else {
+      setNotes(notes + ' ' + value);
+    }
   };
-
-
 
   const handleTagPress = (tag) => {
     insertIntoNotes(tag);
 
-    // if (selectedTags.includes(tag)) {
-    //   setSelectedTags(selectedTags.filter(t => t !== tag));
-    // } else {
-    //   setSelectedTags([...selectedTags, tag]);
-    // }
+    if (selectedTags.includes(tag)) {
+      setSelectedTags(selectedTags.filter(t => t !== tag));
+    } else {
+      setSelectedTags([...selectedTags, tag]);
+    }
   };
 
   const handleDropdownSelect = (category, value, type) => {
@@ -236,6 +223,9 @@ export default function SessionNoteScreen({ appointment, onSubmit, onBack, onDat
     }
 
     insertIntoNotes(value);
+    if (!selectedTags.includes(value)) {
+      setSelectedTags([...selectedTags, value]);
+    }
   };
 
   const handleAddTagClick = (type) => {
@@ -284,11 +274,17 @@ export default function SessionNoteScreen({ appointment, onSubmit, onBack, onDat
     if (addTagType === 'people') {
       setPeopleCategory(trimmedTag);
       insertIntoNotes(trimmedTag);
+      if (!selectedTags.includes(trimmedTag)) {
+        setSelectedTags([...selectedTags, trimmedTag]);
+      }
       // Reopen the dropdown to show the new tag
       setShowPeopleDropdown(true);
     } else {
       setActionsCategory(trimmedTag);
       insertIntoNotes(trimmedTag);
+      if (!selectedTags.includes(trimmedTag)) {
+        setSelectedTags([...selectedTags, trimmedTag]);
+      }
       // Reopen the dropdown to show the new tag
       setShowActionsDropdown(true);
     }
@@ -300,6 +296,7 @@ export default function SessionNoteScreen({ appointment, onSubmit, onBack, onDat
 
   const handleSubmit = async () => {
     if (!notes.trim() || notes.includes('__________')) {
+      console.log('Submitting with tags:', selectedTags);
       Alert.alert('Incomplete', 'Please fill in all blanks in your session notes');
       return;
     }
@@ -551,7 +548,6 @@ export default function SessionNoteScreen({ appointment, onSubmit, onBack, onDat
 
             <View style={styles.notesBox}>
               <TextInput
-                ref={notesInputRef}
                 style={styles.notesInput}
                 multiline
                 value={notes}
@@ -562,7 +558,6 @@ export default function SessionNoteScreen({ appointment, onSubmit, onBack, onDat
                 returnKeyType="done"
                 blurOnSubmit={true}
                 onSubmitEditing={() => Keyboard.dismiss()}
-                onSelectionChange={({ nativeEvent: { selection } }) => setSelection(selection)} 
               />
             </View>
           </View>
@@ -686,9 +681,8 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 20,
   },
-  tagSelected: { backgroundColor: 'rgba(2, 62, 138, 0.3)', borderColor: '#023E8A' },
+
   tagText: { fontSize: 16, fontWeight: fonts.medium, color: '#F4542C' },
-  tagTextSelected: { color: '#023E8A' },
 
   dropdownRow: { flexDirection: 'row', gap: 12 },
   dropdownContainer: { flex: 1, position: 'relative' },
