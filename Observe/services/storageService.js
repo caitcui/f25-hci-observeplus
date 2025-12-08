@@ -22,11 +22,17 @@ export const STORAGE_KEYS = {
   DRAFT_SESSION: (appointmentId) => `draft_session_${appointmentId || 'default'}`,
   DRAFT_TIMESTAMP: (appointmentId) => `draft_session_${appointmentId || 'default'}_timestamp`,
   DRAFT_SIGNATURE: (appointmentId) => `draft_session_${appointmentId || 'default'}_signature`,
+  // NEW KEYS FOR PERSISTENT TAGS
+  CUSTOM_PEOPLE_TAGS: 'custom_people_tags',
+  CUSTOM_ACTIONS_TAGS: 'custom_actions_tags',
 };
 
 // Maximum retry attempts for storage operations
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 100; // ms
+
+// ... (rest of the file remains the same - `withRetry`, `safeJsonParse`, `safeJsonStringify`, `getItem`, `setItem`, `removeItem`, `getMultipleItems`, `setMultipleItems`, `initializeStorage`, `migrateStorage`, `cleanupOldDrafts`, `getStorageInfo`, `clearAllData`, `validateAndRepairData`, `saveDraftSession`, `loadDraftSession`, `clearDraftSession`)
+// ... (Your original implementation of these functions will be used)
 
 /**
  * Retry wrapper for storage operations
@@ -375,4 +381,3 @@ export const clearDraftSession = async (appointmentId) => {
     return false;
   }
 };
-

@@ -259,47 +259,61 @@ export default function SessionNoteScreen({ appointment, onSubmit, onBack, onDat
     }
 
     const trimmedTag = newTagText.trim();
-    
     // Add to the appropriate options array
     if (addTagType === 'people') {
       if (!peopleOptions.includes(trimmedTag)) {
-        setPeopleOptions([...peopleOptions, trimmedTag]);
+        const newOptions = [...peopleOptions, trimmedTag];
+        setPeopleOptions(newOptions);
+        const customTags = newOptions.filter(tag => !BASE_PEOPLE_OPTIONS.includes(tag));
+        //await setItem(STORAGE_KEYS.CUSTOM_PEOPLE_TAGS, customTags);
       }
-      // Clear search to show the new tag
-      setPeopleSearchText('');
-      setPeopleCategory(''); // reset to placeholder
     } else {
       if (!actionsOptions.includes(trimmedTag)) {
-        setActionsOptions([...actionsOptions, trimmedTag]);
+        const newOptions = [...actionsOptions, trimmedTag];
+        setActionsOptions(newOptions);
+        const customTags = newOptions.filter(tag => !BASE_ACTIONS_OPTIONS.includes(tag));
+        //await setItem(STORAGE_KEYS.CUSTOM_ACTIONS_TAGS, customTags);
       }
-      // Clear search to show the new tag
-      setActionsSearchText('');
-      setActionsCategory(''); // reset to placeholder
     }
 
     // Add to common tags if not already there
-    if (!commonTags.includes(trimmedTag)) {
-      // Add to the beginning of common tags (most recent)
-      setCommonTags([trimmedTag, ...commonTags].slice(0, 6));
+    // if (!commonTags.includes(trimmedTag)) {
+    //   // Add to the beginning of common tags (most recent)
+    //   setCommonTags([trimmedTag, ...commonTags].slice(0, 6));
+    // }
+
+    // // Auto-select the new tag
+    // if (addTagType === 'people') {
+    //   setPeopleCategory(trimmedTag);
+    //   insertIntoNotes(trimmedTag);
+    //   if (!selectedTags.includes(trimmedTag)) {
+    //     setSelectedTags([...selectedTags, trimmedTag]);
+    //   }
+    //   // Reopen the dropdown to show the new tag
+    //   setShowPeopleDropdown(false);
+    // } else {
+    //   setActionsCategory(trimmedTag);
+    //   insertIntoNotes(trimmedTag);
+    //   if (!selectedTags.includes(trimmedTag)) {
+    //     setSelectedTags([...selectedTags, trimmedTag]);
+    //   }
+    //   // Reopen the dropdown to show the new tag
+    //   setShowActionsDropdown(false);
+    // }
+
+    insertIntoNotes(trimmedTag);
+    if (!selectedTags.includes(trimmedTag)) {
+      setSelectedTags([...selectedTags, trimmedTag]);
     }
 
-    // Auto-select the new tag
     if (addTagType === 'people') {
-      setPeopleCategory(trimmedTag);
-      insertIntoNotes(trimmedTag);
-      if (!selectedTags.includes(trimmedTag)) {
-        setSelectedTags([...selectedTags, trimmedTag]);
-      }
-      // Reopen the dropdown to show the new tag
-      setShowPeopleDropdown(true);
+      setPeopleCategory(''); // Revert selection to placeholder
+      setPeopleSearchText('');
+      setShowPeopleDropdown(false); // Close the dropdown
     } else {
-      setActionsCategory(trimmedTag);
-      insertIntoNotes(trimmedTag);
-      if (!selectedTags.includes(trimmedTag)) {
-        setSelectedTags([...selectedTags, trimmedTag]);
-      }
-      // Reopen the dropdown to show the new tag
-      setShowActionsDropdown(true);
+      setActionsCategory(''); // Revert selection to placeholder
+      setActionsSearchText('');
+      setShowActionsDropdown(false); // Close the dropdown
     }
 
     setShowAddTagModal(false);
@@ -635,7 +649,7 @@ export default function SessionNoteScreen({ appointment, onSubmit, onBack, onDat
                   style={styles.modalSaveButton}
                   onPress={handleSaveNewTag}
                 >
-                  <Text style={styles.modalSaveButtonText}>Add Tag</Text>
+                  <Text style={styles.modalSaveButtonText}>Double Click to Add Tag</Text>
                 </TouchableOpacity>
               </View>
             </View>
