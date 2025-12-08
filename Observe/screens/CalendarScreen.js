@@ -364,6 +364,19 @@ export default function CalendarScreen({
     onUpdateAppointment(updated);
     setShowEditModal(false);
     setEditingAppointment(null);
+    
+    // Navigate to the new date
+    const [month, day, year] = editForm.date.split('/').map(Number);
+    const targetDate = new Date(2000 + year, month - 1, day);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    targetDate.setHours(0, 0, 0, 0);
+    const diffTime = targetDate - today;
+    const dateOffset = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    // Switch to day view and navigate to the edited appointment's date
+    setViewMode('day');
+    setCurrentDateRange(dateOffset);
   };
 
   const handleDelete = (appointmentId, e) => {
@@ -986,15 +999,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 0,
     borderTopWidth: 0,
-    backgroundColor: colors.primary, 
+    backgroundColor: colors.primary, // White background to show white space between columns
   },
   timeColumn: {
     width: 60,
     borderRightWidth: 0,
     paddingRight: 8,
-    marginRight: 8, 
+    marginRight: 8, // White space after time column
     paddingTop: 12,
-    backgroundColor: '#F0F9FF', 
+    backgroundColor: '#F0F9FF', // Exact light blue shade
   },
   calendarHeaderRow: {
     flexDirection: 'row',
@@ -1035,7 +1048,7 @@ const styles = StyleSheet.create({
     marginRight: 0,
     borderRightWidth: 0,
     paddingRight: 0,
-    backgroundColor: '#F0F9FF', 
+    backgroundColor: '#F0F9FF', // Exact light blue shade matching the design
   },
   dateHeaderColumn: {
     alignItems: 'center',
@@ -1068,7 +1081,7 @@ const styles = StyleSheet.create({
     borderWidth: 0,
   },
   dateCircleToday: {
-    backgroundColor: '#023E8A', 
+    backgroundColor: '#023E8A', // Blue color
     borderColor: '#023E8A',
   },
   dayNumber: {
@@ -1077,7 +1090,7 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
   dayNumberToday: {
-    color: colors.primary, 
+    color: colors.primary, // White text on blue background
   },
   appointmentCount: {
     fontSize: 11,
@@ -1087,7 +1100,7 @@ const styles = StyleSheet.create({
   },
   timeSlotsContainer: {
     position: 'relative',
-    height: 540, 
+    height: 540, // 9 hours (7 AM to 4 PM) * 60 minutes = 540 pixels
   },
   emptySlot: {
     height: 60,
