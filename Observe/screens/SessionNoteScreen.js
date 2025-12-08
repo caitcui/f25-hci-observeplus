@@ -225,16 +225,17 @@ export default function SessionNoteScreen({ appointment, onSubmit, onBack, onDat
 
   const handleDropdownSelect = (category, value, type) => {
     if (type === 'people') {
-      setPeopleCategory(''); // reset to placeholder
+      setPeopleCategory('');
       setShowPeopleDropdown(false);
       setPeopleSearchText('');
     } else {
-      setActionsCategory(''); // reset to placeholder
+      setActionsCategory(''); 
       setShowActionsDropdown(false);
       setActionsSearchText('');
     }
 
     insertIntoNotes(value);
+
     if (!selectedTags.includes(value)) {
       setSelectedTags([...selectedTags, value]);
     }
@@ -565,9 +566,8 @@ export default function SessionNoteScreen({ appointment, onSubmit, onBack, onDat
                 value={notes}
                 onChangeText={setNotes}
                 onSelectionChange={(e) => setCursorPosition(e.nativeEvent.selection.start)}
+                onBlur={() => setCursorPosition(null)}
                 textAlignVertical="top"
-
-                // NEW: keyboard "Done" behavior
                 returnKeyType="done"
                 blurOnSubmit={true}
                 onSubmitEditing={() => Keyboard.dismiss()}
@@ -678,7 +678,7 @@ const styles = StyleSheet.create({
 
   section: { marginBottom: 24 },
   sectionLabel: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: fonts.semiBold,
     color: colors.accent3,
     letterSpacing: 0.5,
@@ -758,7 +758,7 @@ const styles = StyleSheet.create({
   },
   dropdownItemText: { fontSize: 16, fontWeight: fonts.medium, color: colors.accent3 },
 
-  tapToType: { fontSize: 13, fontWeight: fonts.medium, color: colors.accent3, marginBottom: 12 },
+  tapToType: { fontSize: 15, fontWeight: fonts.medium, color: colors.accent3, marginBottom: 12 },
 
   notesBox: {
     backgroundColor: colors.primary,
@@ -811,23 +811,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     marginBottom: 16,
+    marginTop: -20,
     paddingVertical: 10,
     paddingHorizontal: 14,
     backgroundColor: colors.accent2,
     borderRadius: 6,
   },
   autosaveText: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: fonts.medium,
     color: colors.accent3,
   },
   autosaveTimestamp: {
-    fontSize: 12,
+    fontSize: 14,
     color: colors.accent3,
     marginLeft: 'auto',
   },
   categorySubtitle: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: fonts.semiBold,
     color: colors.accent3,
     marginBottom: 8,
@@ -835,7 +836,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   dropdownSubtitle: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: fonts.medium,
     color: colors.accent3,
     marginTop: 4,
@@ -893,7 +894,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   modalLabel: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: fonts.semiBold,
     color: colors.accent3,
     marginBottom: 8,
