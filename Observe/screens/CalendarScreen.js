@@ -999,15 +999,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 0,
     borderTopWidth: 0,
-    backgroundColor: colors.primary, // White background to show white space between columns
+    backgroundColor: colors.primary, 
   },
   timeColumn: {
     width: 60,
     borderRightWidth: 0,
     paddingRight: 8,
-    marginRight: 8, // White space after time column
+    marginRight: 8, 
     paddingTop: 12,
-    backgroundColor: '#F0F9FF', // Exact light blue shade
+    backgroundColor: '#F0F9FF',
   },
   calendarHeaderRow: {
     flexDirection: 'row',
@@ -1048,7 +1048,7 @@ const styles = StyleSheet.create({
     marginRight: 0,
     borderRightWidth: 0,
     paddingRight: 0,
-    backgroundColor: '#F0F9FF', // Exact light blue shade matching the design
+    backgroundColor: '#F0F9FF', 
   },
   dateHeaderColumn: {
     alignItems: 'center',
@@ -1081,7 +1081,7 @@ const styles = StyleSheet.create({
     borderWidth: 0,
   },
   dateCircleToday: {
-    backgroundColor: '#023E8A', // Blue color
+    backgroundColor: '#023E8A', 
     borderColor: '#023E8A',
   },
   dayNumber: {
