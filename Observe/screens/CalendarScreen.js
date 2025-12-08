@@ -39,54 +39,105 @@ export default function CalendarScreen({
     clients: '',
   });
 
+  // Helper to validate date format (MM/DD/YY) and existence
+  const isValidDate = (dateStr) => {
+    if (!dateStr) return false;
+    const dateRegex = /^(\d{1,2})\/(\d{1,2})\/(\d{2})$/;
+    const match = dateStr.match(dateRegex);
+
+    if (!match) return false;
+
+    const month = parseInt(match[1], 10);
+    const day = parseInt(match[2], 10);
+    const year = parseInt(match[3], 10);
+
+    if (month < 1 || month > 12 || day < 1 || day > 31) {
+      return false;
+    }
+
+    const fullYear = 2000 + year;
+    
+    const dateObj = new Date(fullYear, month - 1, day);
+    
+    return (
+      dateObj.getMonth() + 1 === month && 
+      dateObj.getDate() === day && 
+      dateObj.getFullYear() === fullYear
+    );
+  };
+
   // Helper to normalize and validate time
   const normalizeTime = (timeStr) => {
     if (!timeStr) return null;
     let normalized = timeStr.trim().toUpperCase();
-    normalized = normalized.replace(/:/g, '');
-    normalized = normalized.replace(/(\d+)(AM|PM)/i, '$1 $2');
-    return normalized.trim();
+
+    normalized = normalized.replace(/(\d{1,2})(:?)(\d{0,2})\s*(AM|PM)/i, (match, hour, colon, minute, period) => {
+      const min = minute.length === 0 ? '00' : minute.padStart(2, '0');
+      return `${hour.padStart(2, '0')}:${min} ${period.toUpperCase()}`;
+    });
+
+    normalized = normalized.replace(/^(\d{1,2})\s*(AM|PM)$/i, (match, hour, period) => {
+      return `${hour.padStart(2, '0')}:00 ${period.toUpperCase()}`;
+    });
+
+    const timeRegex = /^(\d{2}):(\d{2})\s*(AM|PM)$/;
+    return timeRegex.test(normalized) ? normalized : null;
   };
 
   // Helper to validate time format (7 AM to 5 PM)
   const isValidTime = (timeStr) => {
-    if (!timeStr) return false;
     const normalized = normalizeTime(timeStr);
-    const timeRegex = /^(\d{1,2})\s*(AM|PM)$/i;
-    if (!timeRegex.test(normalized)) return false;
+    if (!normalized) return false;
     
-    const match = normalized.match(/^(\d{1,2})\s*(AM|PM)$/i);
-    const hour = parseInt(match[1]);
-    const period = match[2].toUpperCase();
+    const timeRegex = /^(\d{2}):(\d{2})\s*(AM|PM)$/i;
+    const match = normalized.match(timeRegex);
+    if (!match) return false;
     
-    // 7 AM to 5 PM validation
-    if (period === 'AM') {
-      return hour >= 7 && hour <= 12;
-    } else {
-      return hour >= 1 && hour <= 5;
-    }
+    let hour = parseInt(match[1]);
+    const minute = parseInt(match[2]);
+    const period = match[3].toUpperCase();
+
+    if (minute < 0 || minute > 59) return false;
+
+    // Convert to 24-hour format for easy comparison
+    let hour24 = hour;
+    if (period === 'PM' && hour !== 12) hour24 += 12;
+    if (period === 'AM' && hour === 12) hour24 = 0; // 12 AM (midnight)
+    
+    // The range is 7:00 AM (420 minutes) to 5:00 PM (17 * 60 = 1020 minutes)
+    const totalMinutes = hour24 * 60 + minute;
+    const minMinutes = 7 * 60; // 7 AM
+    const maxMinutes = 17 * 60; // 5 PM
+    
+    return totalMinutes >= minMinutes && totalMinutes <= maxMinutes;
+  };
+
+  const timeToMinutesFromMidnight = (timeStr) => {
+    const normalized = normalizeTime(timeStr);
+    if (!normalized) return -1;
+    
+    const timeRegex = /^(\d{2}):(\d{2})\s*(AM|PM)$/i;
+    const match = normalized.match(timeRegex);
+    
+    let hour = parseInt(match[1]);
+    const minute = parseInt(match[2]);
+    const period = match[3].toUpperCase();
+    
+    // Convert to 24-hour
+    if (period === 'PM' && hour !== 12) hour += 12;
+    if (period === 'AM' && hour === 12) hour = 0; // 12 AM (midnight)
+    
+    return hour * 60 + minute;
   };
 
   // Helper to compare times
   const isEndTimeAfterStart = (startTimeStr, endTimeStr) => {
-    const startNorm = normalizeTime(startTimeStr);
-    const endNorm = normalizeTime(endTimeStr);
+    const startMinutes = timeToMinutesFromMidnight(startTimeStr);
+    const endMinutes = timeToMinutesFromMidnight(endTimeStr);
     
-    const startMatch = startNorm.match(/^(\d{1,2})\s*(AM|PM)$/i);
-    const endMatch = endNorm.match(/^(\d{1,2})\s*(AM|PM)$/i);
-    
-    let startHour = parseInt(startMatch[1]);
-    let endHour = parseInt(endMatch[1]);
-    const startPeriod = startMatch[2].toUpperCase();
-    const endPeriod = endMatch[2].toUpperCase();
-    
-    // Convert to 24-hour
-    if (startPeriod === 'PM' && startHour !== 12) startHour += 12;
-    if (startPeriod === 'AM' && startHour === 12) startHour = 0;
-    if (endPeriod === 'PM' && endHour !== 12) endHour += 12;
-    if (endPeriod === 'AM' && endHour === 12) endHour = 0;
-    
-    return endHour > startHour;
+    if (startMinutes === -1 || endMinutes === -1) return false;
+
+    return endMinutes > startMinutes;
   };
 
   // Parse time string to get start time in minutes from 7 AM (e.g., "8 AM - 10 AM" -> 60)
@@ -95,16 +146,13 @@ export default function CalendarScreen({
     const times = timeStr.split(' - ');
     if (times.length < 1) return null;
     
-    const startMatch = times[0].match(/(\d+)\s*(AM|PM)/i);
-    if (!startMatch) return null;
+    const startMinutesFromMidnight = timeToMinutesFromMidnight(times[0].trim());
+    if (startMinutesFromMidnight === -1) return null;
+
+    // Convert to minutes from 7 AM (420 minutes)
+    const minMinutes = 7 * 60; 
+    const startMinutes = startMinutesFromMidnight - minMinutes;
     
-    let hour = parseInt(startMatch[1]);
-    const period = startMatch[2].toUpperCase();
-    if (period === 'PM' && hour !== 12) hour += 12;
-    if (period === 'AM' && hour === 12) hour = 0;
-    
-    // Convert to minutes from 7 AM (420 minutes = 7 AM)
-    const startMinutes = (hour * 60) - (7 * 60);
     return startMinutes >= 0 ? startMinutes : null;
   };
 
@@ -114,24 +162,13 @@ export default function CalendarScreen({
     const times = timeStr.split(' - ');
     if (times.length !== 2) return 120;
     
-    const startMatch = times[0].match(/(\d+)\s*(AM|PM)/i);
-    const endMatch = times[1].match(/(\d+)\s*(AM|PM)/i);
+    const startMinutes = timeToMinutesFromMidnight(times[0].trim());
+    const endMinutes = timeToMinutesFromMidnight(times[1].trim());
     
-    if (!startMatch || !endMatch) return 120;
+    if (startMinutes === -1 || endMinutes === -1) return 120;
     
-    let startHour = parseInt(startMatch[1]);
-    let endHour = parseInt(endMatch[1]);
-    const startPeriod = startMatch[2].toUpperCase();
-    const endPeriod = endMatch[2].toUpperCase();
-    
-    if (startPeriod === 'PM' && startHour !== 12) startHour += 12;
-    if (startPeriod === 'AM' && startHour === 12) startHour = 0;
-    if (endPeriod === 'PM' && endHour !== 12) endHour += 12;
-    if (endPeriod === 'AM' && endHour === 12) endHour = 0;
-    
-    const startMinutes = startHour * 60;
-    const endMinutes = endHour * 60;
-    return endMinutes - startMinutes;
+    const duration = endMinutes - startMinutes;
+    return duration > 0 ? duration : 120;
   };
 
   // Get dates for current view based on view mode
@@ -271,26 +308,41 @@ export default function CalendarScreen({
       return;
     }
 
+    if (!isValidDate(editForm.date)) {
+      Alert.alert('Invalid Date', 'Date must be in MM/DD/YY format and be a valid calendar date (e.g., 09/25/25)');
+      return;
+    }
+
     const timeParts = editForm.time.split(' - ');
     if (timeParts.length !== 2) {
-      Alert.alert('Invalid Time', 'Time must be in format: "8 AM - 10 AM"');
+      Alert.alert('Invalid Time', 'Time must be in the format: "8:00 AM - 10:00 AM"');
       return;
     }
 
     const startTime = timeParts[0].trim();
     const endTime = timeParts[1].trim();
+    const normalizedStartTime = normalizeTime(startTime);
+    const normalizedEndTime = normalizeTime(endTime);
 
-    if (!isValidTime(startTime) || !isValidTime(endTime)) {
-      Alert.alert('Invalid Time', 'Times must be between 7 AM and 5 PM\n\nExamples: "8 AM", "2 PM"');
+    if (!normalizedStartTime || !normalizedEndTime) {
+      Alert.alert('Invalid Time Format', 'Times must be in a valid format like "8 AM" or "1:30 PM"');
       return;
     }
 
-    if (!isEndTimeAfterStart(startTime, endTime)) {
-      Alert.alert('Invalid Time', 'End time must be after start time');
+    if (!isValidTime(normalizedStartTime) || !isValidTime(normalizedEndTime)) {
+      Alert.alert(
+        'Invalid Time Range', 
+        'Times must be within the business hours of 7:00 AM to 5:00 PM.'
+      );
       return;
     }
 
-    const normalizedTime = `${normalizeTime(startTime)} - ${normalizeTime(endTime)}`;
+    if (!isEndTimeAfterStart(normalizedStartTime, normalizedEndTime)) {
+      Alert.alert('Invalid Time', 'End time must be after start time.');
+      return;
+    }
+
+    const normalizedTime = `${normalizedStartTime} - ${normalizedEndTime}`;
 
     const updated = {
       ...editingAppointment,
