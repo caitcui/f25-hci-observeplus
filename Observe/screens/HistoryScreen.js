@@ -584,7 +584,8 @@ export default function HistoryScreen({ onBack, onViewSession, onDeleteSession, 
               <TouchableOpacity
                 key={session.id}
                 style={styles.sessionItem}
-                onPress={() => handleSessionPress(session)}
+                //onPress={() => handleSessionPress(session)}
+                onPress={() => onViewSession(session, { source: 'history' })}
                 activeOpacity={0.7}
               >
                 <View style={styles.sessionItemHeader}>

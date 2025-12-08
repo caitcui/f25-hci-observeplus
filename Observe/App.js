@@ -39,6 +39,7 @@ export default function App() {
   const [appointments, setAppointments] = useState([]);
   const [isAppointmentsLoaded, setIsAppointmentsLoaded] = useState(false);
   const [selectedSession, setSelectedSession] = useState(null);
+  const [navigationContext, setNavigationContext] = useState({ source: 'calendar', viewDate: null });
 
   // Sample appointments data (used for initialization)
   const SAMPLE_APPOINTMENTS = [
@@ -70,6 +71,16 @@ export default function App() {
       dayNum: '25',
     },
   ];
+
+  const calculateDateOffset = (dateStr) => {
+    const [month, day, year] = dateStr.split('/').map(Number);
+    const targetDate = new Date(2000 + year, month - 1, day);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    targetDate.setHours(0, 0, 0, 0);
+    const diffTime = targetDate - today;
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  };
 
   // Save appointments to storage
   const saveAppointments = async (appointmentsToSave) => {
@@ -159,7 +170,9 @@ export default function App() {
     }
   }, [appointments, isAppointmentsLoaded]);
 
-  const handleAppointmentSelect = async (appointment) => {
+  const handleAppointmentSelect = async (appointment,context = { source: 'calendar', viewDate: null }) => {
+    setNavigationContext({ ...context, source: 'calendar', appointment });
+
     // Check if appointment is completed
     if (completedAppointments.has(appointment.id)) {
       try {
@@ -261,6 +274,13 @@ export default function App() {
         actionsCategory: ''
       });
       setSelectedAppointment(null);
+
+      const dateOffset = calculateDateOffset(selectedAppointment.date);
+      setNavigationContext({ 
+        source: 'calendar', 
+        dateOffset: dateOffset
+      });
+      
       setCurrentScreen('calendar');
       
       Alert.alert('Success', 'Session submitted and saved successfully!');
@@ -332,6 +352,11 @@ export default function App() {
       const updated = [...appointments, newAppointment];
       setAppointments(updated);
       console.log('Updated appointments array length:', updated.length);
+      const dateOffset = calculateDateOffset(newAppointment.date);
+      setNavigationContext({ 
+        source: 'calendar', 
+        dateOffset: dateOffset 
+      });
       setCurrentScreen('calendar');
     } catch (error) {
       console.error('Failed to save appointment:', error);
@@ -343,7 +368,8 @@ export default function App() {
     setCurrentScreen('history');
   };
 
-  const handleViewSession = (session) => {
+  const handleViewSession = (session, context = {}) => {
+    setNavigationContext({ ...context, source: 'history' });
     setSelectedSession(session);
   };
 
@@ -395,6 +421,7 @@ export default function App() {
           appointments={appointments}
           onAppointmentSelect={handleAppointmentSelect}
           completedAppointments={completedAppointments}
+          initialDateOffset={navigationContext.dateOffset || 0}
           onAddSession={handleAddSession}
           onAddAppointment={handleAddAppointment}
           onDeleteAppointment={handleDeleteAppointment}
@@ -407,7 +434,9 @@ export default function App() {
           key={selectedAppointment?.id} // Force remount when appointment changes
           appointment={selectedAppointment}
           onSubmit={handleSessionSubmit}
-          onBack={() => setCurrentScreen('calendar')}
+          // onBack={() => setCurrentScreen('calendar')}
+          onBack={() => navigationContext.source === 'history' ? 
+                setCurrentScreen('history') : setCurrentScreen('calendar')}
           onDataChange={handleSessionDataChange}
         />
       )}
@@ -416,7 +445,9 @@ export default function App() {
           appointment={selectedAppointment}
           sessionData={sessionData}
           onSubmit={handleFinalSubmit}
-          onBack={handleBackFromReviewSign}
+          // onBack={handleBackFromReviewSign}
+          onBack={() => navigationContext.source === 'history' ? 
+              setCurrentScreen('history') : handleBackFromReviewSign()}
         />
       )}
       {currentScreen === 'addSession' && (

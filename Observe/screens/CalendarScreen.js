@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   StyleSheet,
   Text,
@@ -20,6 +20,7 @@ export default function CalendarScreen({
   appointments, 
   onAppointmentSelect, 
   completedAppointments,
+  initialDateOffset = 0,
   onAddSession,
   onAddAppointment,
   onDeleteAppointment,
@@ -29,7 +30,7 @@ export default function CalendarScreen({
   const [editingAppointment, setEditingAppointment] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [viewMode, setViewMode] = useState('day'); // 'day', 'week', 'month', 'year'
-  const [currentDateRange, setCurrentDateRange] = useState(0); // Offset from today
+  const [currentDateRange, setCurrentDateRange] = useState(initialDateOffset); // Offset from today
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [editForm, setEditForm] = useState({
@@ -38,8 +39,14 @@ export default function CalendarScreen({
     title: '',
     clients: '',
   });
+  useEffect(() => {
+    if (initialDateOffset !== 0) {
+      setCurrentDateRange(initialDateOffset);
+    }
+  }, [initialDateOffset]);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [previewAppointment, setPreviewAppointment] = useState(null);
+  const [previewAppointmentContext, setPreviewAppointmentContext] = useState(null);
 
   // Helper to validate date format (MM/DD/YY) and existence
   const isValidDate = (dateStr) => {
@@ -578,7 +585,14 @@ export default function CalendarScreen({
                 ]}
                 //onPress={() => onAppointmentSelect(appointment)}
                 onPress={() => {
+                  const context = {
+                    source: 'calendar',
+                    viewDate: appointment.date,
+                    viewMode: viewMode,
+                    dateOffset: currentDateRange
+                  };
                   setPreviewAppointment(appointment);
+                  setPreviewAppointmentContext(context);
                   setShowPreviewModal(true);
                 }}
                 activeOpacity={0.7}
@@ -866,7 +880,8 @@ export default function CalendarScreen({
                     style={styles.previewEnterButton}
                     onPress={() => {
                       setShowPreviewModal(false);
-                      onAppointmentSelect(previewAppointment);
+                      //onAppointmentSelect(previewAppointment);
+                      onAppointmentSelect(previewAppointment, previewAppointmentContext);
                     }}
                   >
                     <Text style={styles.previewEnterButtonText}>
