@@ -44,6 +44,9 @@ export default function SessionNoteScreen({ appointment, onSubmit, onBack, onDat
   const [newTagText, setNewTagText] = useState('');
   const [addTagType, setAddTagType] = useState(null); // 'people' or 'actions'
   const saveIntervalRef = useRef(null);
+  const notesInputRef = useRef(null);
+  const [selection, setSelection] = useState({ start: 0, end: 0 });
+
 
   const AUTOSAVE_INTERVAL = 3000; // 3 seconds
 
@@ -188,18 +191,28 @@ export default function SessionNoteScreen({ appointment, onSubmit, onBack, onDat
       }
     };
   }, [notes, selectedTags, peopleCategory, actionsCategory, isInitialized]);
-
+  
   const insertIntoNotes = (value) => {
-    const blankIndex = notes.indexOf('__________');
+    const start = selection.start;
+    const end = selection.end;
 
-    if (blankIndex !== -1) {
-      const before = notes.substring(0, blankIndex);
-      const after = notes.substring(blankIndex + 10);
-      setNotes(before + value + after);
-    } else {
-      setNotes(notes + ' ' + value);
-    }
+    const before = notes.substring(0, start);
+    const after = notes.substring(end);
+
+    const newNotes = before + value + after;
+    setNotes(newNotes);
+
+    // Find the next blank after inserted value
+    const nextBlankIndex = newNotes.indexOf('__________', start + value.length);
+    const newCursorPosition = nextBlankIndex !== -1 ? nextBlankIndex : start + value.length;
+
+    setTimeout(() => {
+      notesInputRef.current?.focus();
+      setSelection({ start: newCursorPosition, end: newCursorPosition });
+    }, 0);
   };
+
+
 
   const handleTagPress = (tag) => {
     insertIntoNotes(tag);
@@ -538,6 +551,7 @@ export default function SessionNoteScreen({ appointment, onSubmit, onBack, onDat
 
             <View style={styles.notesBox}>
               <TextInput
+                ref={notesInputRef}
                 style={styles.notesInput}
                 multiline
                 value={notes}
@@ -548,6 +562,7 @@ export default function SessionNoteScreen({ appointment, onSubmit, onBack, onDat
                 returnKeyType="done"
                 blurOnSubmit={true}
                 onSubmitEditing={() => Keyboard.dismiss()}
+                onSelectionChange={({ nativeEvent: { selection } }) => setSelection(selection)} 
               />
             </View>
           </View>
