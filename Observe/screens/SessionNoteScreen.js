@@ -713,7 +713,7 @@ const styles = StyleSheet.create({
   dropdownText: { fontSize: 16, fontWeight: fonts.medium, color: colors.accent3 },
   dropdownMenu: {
     position: 'absolute',
-    top: 80, // Account for larger dropdown + subtitle
+    top: 80, 
     left: 0,
     right: 0,
     backgroundColor: colors.primary,

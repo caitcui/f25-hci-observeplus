@@ -986,15 +986,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 0,
     borderTopWidth: 0,
-    backgroundColor: colors.primary, // White background to show white space between columns
+    backgroundColor: colors.primary, 
   },
   timeColumn: {
     width: 60,
     borderRightWidth: 0,
     paddingRight: 8,
-    marginRight: 8, // White space after time column
+    marginRight: 8, 
     paddingTop: 12,
-    backgroundColor: '#F0F9FF', // Exact light blue shade
+    backgroundColor: '#F0F9FF', 
   },
   calendarHeaderRow: {
     flexDirection: 'row',
@@ -1035,7 +1035,7 @@ const styles = StyleSheet.create({
     marginRight: 0,
     borderRightWidth: 0,
     paddingRight: 0,
-    backgroundColor: '#F0F9FF', // Exact light blue shade matching the design
+    backgroundColor: '#F0F9FF', 
   },
   dateHeaderColumn: {
     alignItems: 'center',
@@ -1068,7 +1068,7 @@ const styles = StyleSheet.create({
     borderWidth: 0,
   },
   dateCircleToday: {
-    backgroundColor: '#023E8A', // Blue color
+    backgroundColor: '#023E8A', 
     borderColor: '#023E8A',
   },
   dayNumber: {
@@ -1077,7 +1077,7 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
   dayNumberToday: {
-    color: colors.primary, // White text on blue background
+    color: colors.primary, 
   },
   appointmentCount: {
     fontSize: 11,
@@ -1087,7 +1087,7 @@ const styles = StyleSheet.create({
   },
   timeSlotsContainer: {
     position: 'relative',
-    height: 540, // 9 hours (7 AM to 4 PM) * 60 minutes = 540 pixels
+    height: 540, 
   },
   emptySlot: {
     height: 60,
