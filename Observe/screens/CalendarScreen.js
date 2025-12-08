@@ -38,6 +38,8 @@ export default function CalendarScreen({
     title: '',
     clients: '',
   });
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [previewAppointment, setPreviewAppointment] = useState(null);
 
   // Helper to validate date format (MM/DD/YY) and existence
   const isValidDate = (dateStr) => {
@@ -574,7 +576,11 @@ export default function CalendarScreen({
                     top: startMinutes,
                   },
                 ]}
-                onPress={() => onAppointmentSelect(appointment)}
+                //onPress={() => onAppointmentSelect(appointment)}
+                onPress={() => {
+                  setPreviewAppointment(appointment);
+                  setShowPreviewModal(true);
+                }}
                 activeOpacity={0.7}
               >
                 <View style={[styles.appointmentContent, isWeekView && styles.appointmentContentWeek]}>
@@ -812,6 +818,66 @@ export default function CalendarScreen({
           </View>
         </View>
         </KeyboardAvoidingView>
+      </Modal>
+
+      {/* Session Preview Modal */}
+      <Modal
+        visible={showPreviewModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowPreviewModal(false)}
+      >
+        <View style={styles.previewModalOverlay}>
+          <View style={styles.previewModalContent}>
+            <View style={styles.previewModalHeader}>
+              <Text style={styles.previewModalTitle}>Session Details</Text>
+              <TouchableOpacity onPress={() => setShowPreviewModal(false)}>
+                <MaterialIcons name="close" size={24} color={colors.accent3} />
+              </TouchableOpacity>
+            </View>
+            
+            {previewAppointment && (
+              <View style={styles.previewModalBody}>
+                <View style={styles.previewRow}>
+                  <Text style={styles.previewLabel}>Date:</Text>
+                  <Text style={styles.previewValue}>{previewAppointment.date}</Text>
+                </View>
+                <View style={styles.previewRow}>
+                  <Text style={styles.previewLabel}>Time:</Text>
+                  <Text style={styles.previewValue}>{previewAppointment.time}</Text>
+                </View>
+                <View style={styles.previewRow}>
+                  <Text style={styles.previewLabel}>Title:</Text>
+                  <Text style={styles.previewValue}>{previewAppointment.title}</Text>
+                </View>
+                <View style={styles.previewRow}>
+                  <Text style={styles.previewLabel}>Client(s):</Text>
+                  <Text style={styles.previewValue}>{previewAppointment.clients}</Text>
+                </View>
+                
+                <View style={styles.previewButtons}>
+                  <TouchableOpacity 
+                    style={styles.previewCancelButton}
+                    onPress={() => setShowPreviewModal(false)}
+                  >
+                    <Text style={styles.previewCancelButtonText}>BACK</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={styles.previewEnterButton}
+                    onPress={() => {
+                      setShowPreviewModal(false);
+                      onAppointmentSelect(previewAppointment);
+                    }}
+                  >
+                    <Text style={styles.previewEnterButtonText}>
+                      {completedAppointments?.has(previewAppointment.id) ? 'VIEW DETAILS' : 'ENTER NOTES'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
+          </View>
+        </View>
       </Modal>
     </SafeAreaView>
   );
@@ -1153,6 +1219,12 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'flex-end',
   },
+  previewModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   modalContent: {
     backgroundColor: colors.primary,
     borderTopLeftRadius: 20,
@@ -1310,5 +1382,79 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: fonts.medium,
     color: colors.secondary,
+  },
+  previewModalContent: {
+    backgroundColor: colors.primary,
+    borderRadius: 12,
+    width: '85%',
+    maxWidth: 400,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  previewModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.accent2,
+  },
+  previewModalTitle: {
+    fontSize: 20,
+    fontWeight: fonts.bold,
+    color: colors.accent3,
+  },
+  previewModalBody: {
+    padding: 20,
+  },
+  previewRow: {
+    flexDirection: 'row',
+    marginBottom: 16,
+    alignItems: 'flex-start',
+  },
+  previewLabel: {
+    fontSize: 16,
+    fontWeight: fonts.semiBold,
+    color: colors.accent3,
+    width: 90,
+  },
+  previewValue: {
+    fontSize: 16,
+    fontWeight: fonts.medium,
+    color: colors.accent3,
+    flex: 1,
+  },
+  previewButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 24,
+  },
+  previewCancelButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: colors.accent3,
+    alignItems: 'center',
+  },
+  previewCancelButtonText: {
+    fontSize: 16,
+    fontWeight: fonts.semiBold,
+    color: colors.accent3,
+  },
+  previewEnterButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 8,
+    backgroundColor: colors.secondary,
+    alignItems: 'center',
+  },
+  previewEnterButtonText: {
+    fontSize: 16,
+    fontWeight: fonts.semiBold,
+    color: colors.primary,
   },
 });
