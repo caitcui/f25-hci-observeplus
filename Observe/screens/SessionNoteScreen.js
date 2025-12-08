@@ -43,6 +43,7 @@ export default function SessionNoteScreen({ appointment, onSubmit, onBack, onDat
   const [showAddTagModal, setShowAddTagModal] = useState(false);
   const [newTagText, setNewTagText] = useState('');
   const [addTagType, setAddTagType] = useState(null); // 'people' or 'actions'
+  const [cursorPosition, setCursorPosition] = useState(null);
   const saveIntervalRef = useRef(null);
 
   const AUTOSAVE_INTERVAL = 3000; // 3 seconds
@@ -190,6 +191,17 @@ export default function SessionNoteScreen({ appointment, onSubmit, onBack, onDat
   }, [notes, selectedTags, peopleCategory, actionsCategory, isInitialized]);
   
   const insertIntoNotes = (value) => {
+    // if cursor present, insert after
+    if (cursorPosition !== null && cursorPosition > 0) {
+      const before = notes.substring(0, cursorPosition);
+      const after = notes.substring(cursorPosition);
+      setNotes(before + value + after);
+      // Update cursor position to after inserted value
+      setCursorPosition(cursorPosition + value.length);
+      return;
+    }
+
+    // find next blank ow
     const blankIndex = notes.indexOf('__________');
 
     if (blankIndex !== -1) {
@@ -534,7 +546,7 @@ export default function SessionNoteScreen({ appointment, onSubmit, onBack, onDat
           <TouchableOpacity
             style={styles.addSentenceButton}
             onPress={() => {
-              setNotes(prev => prev + '\nThe client was __________ because __________.');
+              setNotes(prev => prev + 'The client was __________ because __________.');
             }}
           >
             <MaterialIcons name="add" size={20} color={colors.primary} />
@@ -552,6 +564,7 @@ export default function SessionNoteScreen({ appointment, onSubmit, onBack, onDat
                 multiline
                 value={notes}
                 onChangeText={setNotes}
+                onSelectionChange={(e) => setCursorPosition(e.nativeEvent.selection.start)}
                 textAlignVertical="top"
 
                 // NEW: keyboard "Done" behavior
@@ -777,7 +790,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
 
-  // NEW: add-sentence button
+  // add-sentence button
   addSentenceButton: {
     flexDirection: 'row',
     alignItems: 'center',
