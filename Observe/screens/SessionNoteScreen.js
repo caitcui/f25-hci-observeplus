@@ -48,6 +48,10 @@ export default function SessionNoteScreen({ appointment, onSubmit, onBack, onDat
 
   const AUTOSAVE_INTERVAL = 3000; // 3 seconds
 
+  // Base tag options
+  const BASE_PEOPLE_OPTIONS = ['The RBT', 'Client', 'Supervisor', 'Parent', 'Peer'];
+  const BASE_ACTIONS_OPTIONS = ['escaping', 'pushed', 'followed guidance', 'had a tantrum episode', 'engaged', 'refused'];
+
   // Default tags (fallback)
   const defaultCommonTags = [
     'The RBT',
@@ -60,8 +64,8 @@ export default function SessionNoteScreen({ appointment, onSubmit, onBack, onDat
 
   const [commonTags, setCommonTags] = useState(defaultCommonTags);
 
-  const [peopleOptions, setPeopleOptions] = useState(['The RBT', 'Client', 'Supervisor', 'Parent', 'Peer']);
-  const [actionsOptions, setActionsOptions] = useState(['escaping', 'pushed', 'followed guidance', 'had a tantrum episode', 'engaged', 'refused']);
+  const [peopleOptions, setPeopleOptions] = useState(BASE_PEOPLE_OPTIONS);
+  const [actionsOptions, setActionsOptions] = useState(BASE_ACTIONS_OPTIONS);
 
   const filteredPeopleOptions = peopleOptions.filter(option =>
     option.toLowerCase().includes(peopleSearchText.toLowerCase())
@@ -81,6 +85,18 @@ export default function SessionNoteScreen({ appointment, onSubmit, onBack, onDat
           await initializeTagUsageFromSessions();
           await AsyncStorage.setItem(initKey, 'true');
         }
+
+        // Load custom people tags
+        const customPeopleJson = await AsyncStorage.getItem('custom_people_tags');
+        const customPeople = customPeopleJson ? JSON.parse(customPeopleJson) : [];
+        const mergedPeopleOptions = [...new Set([...BASE_PEOPLE_OPTIONS, ...customPeople])];
+        setPeopleOptions(mergedPeopleOptions);
+
+        // Load custom actions tags
+        const customActionsJson = await AsyncStorage.getItem('custom_actions_tags');
+        const customActions = customActionsJson ? JSON.parse(customActionsJson) : [];
+        const mergedActionsOptions = [...new Set([...BASE_ACTIONS_OPTIONS, ...customActions])];
+        setActionsOptions(mergedActionsOptions);
         
         // Load saved draft using storage service
         const { draft, timestamp } = await loadDraftSession(appointment?.id);
@@ -104,14 +120,10 @@ export default function SessionNoteScreen({ appointment, onSubmit, onBack, onDat
         }
         
         // Load suggested tags based on usage history
-        // Get current options (they may have been updated)
-        const currentPeopleOptions = ['The RBT', 'Client', 'Supervisor', 'Parent', 'Peer'];
-        const currentActionsOptions = ['escaping', 'pushed', 'followed guidance', 'had a tantrum episode', 'engaged', 'refused'];
-        
         const allAvailableTags = [
           ...defaultCommonTags,
-          ...currentPeopleOptions,
-          ...currentActionsOptions,
+          ...mergedPeopleOptions,
+          ...mergedActionsOptions,
         ];
         const suggested = await getSuggestedTags(allAvailableTags, 6);
         
@@ -259,61 +271,39 @@ export default function SessionNoteScreen({ appointment, onSubmit, onBack, onDat
     }
 
     const trimmedTag = newTagText.trim();
-    // Add to the appropriate options array
+    
+    // Add to the appropriate options array and save
     if (addTagType === 'people') {
       if (!peopleOptions.includes(trimmedTag)) {
         const newOptions = [...peopleOptions, trimmedTag];
         setPeopleOptions(newOptions);
         const customTags = newOptions.filter(tag => !BASE_PEOPLE_OPTIONS.includes(tag));
-        //await setItem(STORAGE_KEYS.CUSTOM_PEOPLE_TAGS, customTags);
+        await AsyncStorage.setItem('custom_people_tags', JSON.stringify(customTags));
       }
     } else {
       if (!actionsOptions.includes(trimmedTag)) {
         const newOptions = [...actionsOptions, trimmedTag];
         setActionsOptions(newOptions);
         const customTags = newOptions.filter(tag => !BASE_ACTIONS_OPTIONS.includes(tag));
-        //await setItem(STORAGE_KEYS.CUSTOM_ACTIONS_TAGS, customTags);
+        await AsyncStorage.setItem('custom_actions_tags', JSON.stringify(customTags));
       }
     }
 
-    // Add to common tags if not already there
-    // if (!commonTags.includes(trimmedTag)) {
-    //   // Add to the beginning of common tags (most recent)
-    //   setCommonTags([trimmedTag, ...commonTags].slice(0, 6));
-    // }
-
-    // // Auto-select the new tag
-    // if (addTagType === 'people') {
-    //   setPeopleCategory(trimmedTag);
-    //   insertIntoNotes(trimmedTag);
-    //   if (!selectedTags.includes(trimmedTag)) {
-    //     setSelectedTags([...selectedTags, trimmedTag]);
-    //   }
-    //   // Reopen the dropdown to show the new tag
-    //   setShowPeopleDropdown(false);
-    // } else {
-    //   setActionsCategory(trimmedTag);
-    //   insertIntoNotes(trimmedTag);
-    //   if (!selectedTags.includes(trimmedTag)) {
-    //     setSelectedTags([...selectedTags, trimmedTag]);
-    //   }
-    //   // Reopen the dropdown to show the new tag
-    //   setShowActionsDropdown(false);
-    // }
-
+    // Auto-select and insert into notes
     insertIntoNotes(trimmedTag);
     if (!selectedTags.includes(trimmedTag)) {
       setSelectedTags([...selectedTags, trimmedTag]);
     }
 
+    // Reset dropdown to placeholder
     if (addTagType === 'people') {
-      setPeopleCategory(''); // Revert selection to placeholder
+      setPeopleCategory('');
       setPeopleSearchText('');
-      setShowPeopleDropdown(false); // Close the dropdown
+      setShowPeopleDropdown(false);
     } else {
-      setActionsCategory(''); // Revert selection to placeholder
+      setActionsCategory('');
       setActionsSearchText('');
-      setShowActionsDropdown(false); // Close the dropdown
+      setShowActionsDropdown(false);
     }
 
     setShowAddTagModal(false);
@@ -608,7 +598,7 @@ export default function SessionNoteScreen({ appointment, onSubmit, onBack, onDat
           setAddTagType(null);
         }}
       >
-        <View style={styles.modalOverlay}>
+        <View style={styles.modalOverlay} pointerEvents="box-none">
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>
@@ -649,7 +639,7 @@ export default function SessionNoteScreen({ appointment, onSubmit, onBack, onDat
                   style={styles.modalSaveButton}
                   onPress={handleSaveNewTag}
                 >
-                  <Text style={styles.modalSaveButtonText}>Double Click to Add Tag</Text>
+                  <Text style={styles.modalSaveButtonText}>Add Tag</Text>
                 </TouchableOpacity>
               </View>
             </View>
