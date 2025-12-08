@@ -351,7 +351,7 @@ const styles = StyleSheet.create({
   content: { padding: 20 },
   section: { marginBottom: 24 },
   sectionTitle: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: fonts.semiBold,
     color: colors.accent3,
     letterSpacing: 0.5,
@@ -372,7 +372,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   label: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: fonts.semiBold,
     color: colors.accent3,
     letterSpacing: 0.5,
@@ -385,7 +385,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: fonts.medium,
     color: colors.accent3,
   },

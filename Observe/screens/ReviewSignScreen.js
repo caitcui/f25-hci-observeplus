@@ -154,7 +154,6 @@ export default function ReviewSignScreen({ appointment, sessionData, onSubmit, o
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionLabel}>BASIC INFORMATION</Text>
-              <Text style={styles.tapToType}>Tap to enable typing.</Text>
             </View>
 
             <View style={styles.infoRow}>
@@ -273,19 +272,24 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
   },
   backButton: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
-  titleBadge: { backgroundColor: colors.secondary, paddingVertical: 14, paddingHorizontal: 36, borderRadius: 10 },
-  title: { fontSize: 20, fontWeight: fonts.bold, color: colors.primary },
+  titleBadge: { 
+    backgroundColor: colors.secondary, 
+    paddingVertical: 12, 
+    paddingHorizontal: 32, 
+    borderRadius: 10 
+  },
+  title: { fontSize: 18, fontWeight: fonts.bold, color: colors.primary },
   content: { padding: 20 },
   section: { marginBottom: 32 },
   sectionHeader: { marginBottom: 16 },
   sectionLabel: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: fonts.semiBold,
     color: colors.accent3,
     letterSpacing: 0.5,
     marginBottom: 4,
   },
-  tapToType: { fontSize: 14, fontWeight: fonts.medium, color: colors.accent3 },
+  tapToType: { fontSize: 15, fontWeight: fonts.medium, color: colors.accent3 },
   infoRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
   labelBox: {
     backgroundColor: colors.primary,
@@ -297,7 +301,12 @@ const styles = StyleSheet.create({
     minWidth: 90,
     marginRight: 16,
   },
-  labelText: { fontSize: 15, fontWeight: fonts.bold, color: colors.secondary, textAlign: 'center' },
+  labelText: { 
+    fontSize: 16, 
+    fontWeight: fonts.semiBold, 
+    color: colors.secondary, 
+    textAlign: 'center' 
+  },
   infoValue: { fontSize: 16, fontWeight: fonts.medium, color: colors.accent3, flex: 1 },
 
   signatureHeader: { 
@@ -321,7 +330,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   signatureSavedText: {
-    fontSize: 13,
+    fontSize: 1,
     fontWeight: fonts.semiBold,
     color: colors.secondary,
   },
@@ -364,7 +373,7 @@ const styles = StyleSheet.create({
   },
   saveSignatureText: { fontSize: 16, fontWeight: fonts.semiBold, color: colors.primary, marginLeft: 8 },
   signatureNote: {
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: fonts.medium,
     color: colors.accent3,
     fontStyle: 'italic',
@@ -374,10 +383,10 @@ const styles = StyleSheet.create({
 
   submitButton: {
     backgroundColor: colors.secondary,
-    paddingVertical: 18,
+    paddingVertical: 16,
     borderRadius: 24,
     alignItems: 'center',
     marginTop: 12,
   },
-  submitButtonText: { fontSize: 18, fontWeight: fonts.bold, color: colors.primary },
+  submitButtonText: { fontSize: 16, fontWeight: fonts.bold, color: colors.primary },
 });
