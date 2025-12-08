@@ -25,7 +25,6 @@ import {
 export default function ReviewSignScreen({ appointment, sessionData, onSubmit, onBack }) {
   const signatureRef = useRef(null);
   const [signatureData, setSignatureData] = useState(null);
-  const [scrollEnabled, setScrollEnabled] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
 
   // Load saved signature on mount
@@ -107,6 +106,9 @@ export default function ReviewSignScreen({ appointment, sessionData, onSubmit, o
     .m-signature-pad--footer {
       display: none;
     }
+    body, html {
+      touch-action: none;
+    }
   `;
 
   const handleSubmit = () => {
@@ -133,7 +135,7 @@ export default function ReviewSignScreen({ appointment, sessionData, onSubmit, o
 
       <ScrollView 
         style={styles.scrollView}
-        scrollEnabled={scrollEnabled}   // NEW
+        scrollEnabled={false}
       >
         {/* header */}
         <View style={styles.header}>
@@ -184,7 +186,7 @@ export default function ReviewSignScreen({ appointment, sessionData, onSubmit, o
               <View style={styles.signatureHeaderRight}>
                 {signatureData && (
                   <View style={styles.signatureSavedIndicator}>
-                    <MaterialIcons name="check-circle" size={16} color={colors.secondary} />
+                    <MaterialIcons name="check-circle" size={18} color={colors.secondary} />
                     <Text style={styles.signatureSavedText}>Saved</Text>
                   </View>
                 )}
@@ -199,52 +201,48 @@ export default function ReviewSignScreen({ appointment, sessionData, onSubmit, o
               </View>
             </View>
 
-            {/* Show saved signature preview if exists */}
-            {signatureData && isInitialized && (
-              <View style={styles.signaturePreviewContainer}>
-                <Text style={styles.signaturePreviewLabel}>Current Signature (tap canvas below to edit)</Text>
-                <View style={styles.signaturePreviewBox}>
+            {/* Show preview if signature exists, otherwise show canvas */}
+            <View style={styles.signatureBox}>
+              {signatureData && isInitialized ? (
+                <View style={styles.signaturePreview}>
                   <Image
                     source={{ uri: signatureData }}
-                    style={styles.signaturePreviewImage}
+                    style={styles.signatureImage}
                     resizeMode="contain"
                   />
                 </View>
-              </View>
-            )}
-
-            <View style={styles.signatureBox}>
-              {isInitialized && (
-                <Signature
-                  ref={signatureRef}
-                  onOK={handleSignature}
-                  onEmpty={handleEmpty}
-                  descriptionText={signatureData ? "Draw to update signature" : "Sign here"}
-                  clearText="Clear"
-                  confirmText="Save"
-                  webStyle={webStyle}
-                  autoClear={false}
-                  imageType="image/png"
-                  // Disable scroll while drawing
-                  onBegin={() => setScrollEnabled(false)}
-                  onEnd={() => setScrollEnabled(true)}
-                />
+              ) : (
+                isInitialized && (
+                  <Signature
+                    ref={signatureRef}
+                    onOK={handleSignature}
+                    onEmpty={handleEmpty}
+                    descriptionText="Sign here"
+                    clearText="Clear"
+                    confirmText="Save"
+                    webStyle={webStyle}
+                    autoClear={false}
+                    imageType="image/png"
+                  />
+                )
               )}
             </View>
 
-            <TouchableOpacity
-              style={[styles.saveSignatureButton, signatureData && styles.saveSignatureButtonSaved]}
-              onPress={handleConfirm}
-            >
-              <MaterialIcons name={signatureData ? "check-circle" : "check"} size={20} color={colors.primary} />
-              <Text style={styles.saveSignatureText}>
-                {signatureData ? 'Update Signature' : 'Save Signature'}
-              </Text>
-            </TouchableOpacity>
+            {!signatureData && (
+              <TouchableOpacity
+                style={styles.saveSignatureButton}
+                onPress={handleConfirm}
+              >
+                <MaterialIcons name="check" size={22} color={colors.primary} />
+                <Text style={styles.saveSignatureText}>
+                  Save Signature
+                </Text>
+              </TouchableOpacity>
+            )}
             
             {signatureData && (
               <Text style={styles.signatureNote}>
-                You can edit your signature until you click SUBMIT
+                Signature saved - click CLEAR to edit or SUBMIT to complete
               </Text>
             )}
           </View>
@@ -275,32 +273,32 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
   },
   backButton: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
-  titleBadge: { backgroundColor: colors.secondary, paddingVertical: 12, paddingHorizontal: 32, borderRadius: 8 },
-  title: { fontSize: 18, fontWeight: fonts.bold, color: colors.primary },
+  titleBadge: { backgroundColor: colors.secondary, paddingVertical: 14, paddingHorizontal: 36, borderRadius: 10 },
+  title: { fontSize: 20, fontWeight: fonts.bold, color: colors.primary },
   content: { padding: 20 },
   section: { marginBottom: 32 },
   sectionHeader: { marginBottom: 16 },
   sectionLabel: {
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: fonts.semiBold,
     color: colors.accent3,
     letterSpacing: 0.5,
     marginBottom: 4,
   },
-  tapToType: { fontSize: 12, fontWeight: fonts.medium, color: colors.accent3 },
+  tapToType: { fontSize: 14, fontWeight: fonts.medium, color: colors.accent3 },
   infoRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
   labelBox: {
     backgroundColor: colors.primary,
     borderWidth: 2,
     borderColor: colors.secondary,
-    borderRadius: 4,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    minWidth: 80,
+    borderRadius: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    minWidth: 90,
     marginRight: 16,
   },
-  labelText: { fontSize: 13, fontWeight: fonts.bold, color: colors.secondary, textAlign: 'center' },
-  infoValue: { fontSize: 14, fontWeight: fonts.medium, color: colors.accent3, flex: 1 },
+  labelText: { fontSize: 15, fontWeight: fonts.bold, color: colors.secondary, textAlign: 'center' },
+  infoValue: { fontSize: 16, fontWeight: fonts.medium, color: colors.accent3, flex: 1 },
 
   signatureHeader: { 
     flexDirection: 'row', 
@@ -318,30 +316,41 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
     backgroundColor: colors.accent2,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 4,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 6,
   },
   signatureSavedText: {
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: fonts.semiBold,
     color: colors.secondary,
   },
   clearButton: {
     backgroundColor: colors.secondary,
-    paddingVertical: 8,
-    paddingHorizontal: 20,
-    borderRadius: 6,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
   },
-  clearButtonText: { fontSize: 13, fontWeight: fonts.bold, color: colors.primary },
-
+  clearButtonText: { fontSize: 15, fontWeight: fonts.bold, color: colors.primary },
   signatureBox: {
     backgroundColor: '#E5E5E5',
     borderRadius: 12,
     borderWidth: 2,
     borderColor: colors.accent1,
-    height: 200,
+    height: 220,
     overflow: 'hidden',
+  },
+  signaturePreview: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 12,
+  },
+  signatureImage: {
+    width: '100%',
+    height: '100%',
   },
 
   saveSignatureButton: {
@@ -349,39 +358,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.accent1,
-    paddingVertical: 12,
-    borderRadius: 8,
+    paddingVertical: 14,
+    borderRadius: 10,
     marginTop: 12,
   },
-  saveSignatureButtonSaved: {
-    backgroundColor: colors.accent2,
-  },
-  saveSignatureText: { fontSize: 14, fontWeight: fonts.semiBold, color: colors.primary, marginLeft: 8 },
-  signaturePreviewContainer: {
-    marginBottom: 16,
-  },
-  signaturePreviewLabel: {
-    fontSize: 11,
-    fontWeight: fonts.medium,
-    color: colors.accent3,
-    marginBottom: 8,
-  },
-  signaturePreviewBox: {
-    backgroundColor: '#F5F5F5',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.accent1,
-    padding: 8,
-    height: 120,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  signaturePreviewImage: {
-    width: '100%',
-    height: '100%',
-  },
+  saveSignatureText: { fontSize: 16, fontWeight: fonts.semiBold, color: colors.primary, marginLeft: 8 },
   signatureNote: {
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: fonts.medium,
     color: colors.accent3,
     fontStyle: 'italic',
@@ -391,10 +374,10 @@ const styles = StyleSheet.create({
 
   submitButton: {
     backgroundColor: colors.secondary,
-    paddingVertical: 16,
+    paddingVertical: 18,
     borderRadius: 24,
     alignItems: 'center',
     marginTop: 12,
   },
-  submitButtonText: { fontSize: 16, fontWeight: fonts.bold, color: colors.primary },
+  submitButtonText: { fontSize: 18, fontWeight: fonts.bold, color: colors.primary },
 });

@@ -51,8 +51,9 @@ const safeJsonParse = (jsonString, defaultValue = null) => {
     const parsed = JSON.parse(jsonString);
     return parsed;
   } catch (error) {
-    console.error('Failed to parse JSON:', error);
-    return defaultValue;
+    // console.error('Failed to parse JSON:', error);
+    // return defaultValue;
+    return jsonString;
   }
 };
 
@@ -120,7 +121,6 @@ export const removeItem = async (key) => {
     return true;
   } catch (error) {
     console.error(`Failed to remove item ${key}:`, error);
-    // Don't throw - removal failures are usually non-critical
     return false;
   }
 };
