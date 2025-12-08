@@ -39,7 +39,11 @@ export default function App() {
   const [appointments, setAppointments] = useState([]);
   const [isAppointmentsLoaded, setIsAppointmentsLoaded] = useState(false);
   const [selectedSession, setSelectedSession] = useState(null);
-  const [navigationContext, setNavigationContext] = useState({ source: 'calendar', viewDate: null });
+  const [navigationContext, setNavigationContext] = useState({ 
+    source: 'calendar', 
+    viewDate: null,
+    currentDateRange: 0  // Track calendar date range
+  });
 
   // Sample appointments data (used for initialization)
   const SAMPLE_APPOINTMENTS = [
@@ -170,8 +174,14 @@ export default function App() {
     }
   }, [appointments, isAppointmentsLoaded]);
 
-  const handleAppointmentSelect = async (appointment,context = { source: 'calendar', viewDate: null }) => {
-    setNavigationContext({ ...context, source: 'calendar', appointment });
+  // Handle appointment select from calendar - track current date range
+  const handleAppointmentSelect = async (appointment, currentDateRange = 0) => {
+    console.log('📍 Appointment selected from calendar with dateRange:', currentDateRange);
+    setNavigationContext({ 
+      source: 'calendar', 
+      appointment,
+      currentDateRange  // Store the current calendar date range
+    });
 
     // Check if appointment is completed
     if (completedAppointments.has(appointment.id)) {
@@ -229,10 +239,11 @@ export default function App() {
 
   // Handle data changes from SessionNoteScreen
   const handleSessionDataChange = (data) => {
+    console.log('📝 Session data updated:', data);
     setSessionData(data);
   };
 
-  // Handle final submission from ReviewSignScreen
+  // Handle final submit from ReviewSignScreen
   const handleFinalSubmit = async (signatureData) => {
     try {
       if (!selectedAppointment) {
@@ -278,7 +289,8 @@ export default function App() {
       const dateOffset = calculateDateOffset(selectedAppointment.date);
       setNavigationContext({ 
         source: 'calendar', 
-        dateOffset: dateOffset
+        dateOffset: dateOffset,
+        currentDateRange: dateOffset
       });
       
       setCurrentScreen('calendar');
@@ -355,7 +367,8 @@ export default function App() {
       const dateOffset = calculateDateOffset(newAppointment.date);
       setNavigationContext({ 
         source: 'calendar', 
-        dateOffset: dateOffset 
+        dateOffset: dateOffset,
+        currentDateRange: dateOffset
       });
       setCurrentScreen('calendar');
     } catch (error) {
@@ -364,23 +377,38 @@ export default function App() {
     }
   };
 
-  const handleViewHistory = () => {
+  // Handle "Previous Session" button - preserve current calendar date
+  const handleViewHistory = (currentDateRange = 0) => {
+    console.log('📍 Opening history from calendar with dateRange:', currentDateRange);
+    setNavigationContext(prev => ({ 
+      ...prev, 
+      source: 'calendar',
+      currentDateRange  // Store the calendar's current date range
+    }));
     setCurrentScreen('history');
   };
 
-  const handleViewSession = (session, context = {}) => {
-    setNavigationContext({ ...context, source: 'history' });
+  // Handle viewing a session from history list
+  const handleViewSession = (session) => {
+    console.log('📍 Viewing session from history list');
+    setNavigationContext({ 
+      source: 'history',
+      currentDateRange: navigationContext.currentDateRange // Preserve calendar date
+    });
     setSelectedSession(session);
   };
 
+  // Handle back from history - return to calendar with preserved date
   const handleBackFromHistory = () => {
+    console.log('📍 Returning to calendar with dateRange:', navigationContext.currentDateRange);
     setCurrentScreen('calendar');
     setSelectedSession(null);
   };
 
+  // Handle delete session - navigate based on where it was initiated
   const handleDeleteSession = async (sessionId, appointmentId) => {
     try {
-      console.log('Deleting session and appointment:', { sessionId, appointmentId });
+      console.log('🗑️ Deleting session:', { sessionId, appointmentId, source: navigationContext.source });
       
       // Delete session from completed sessions
       const sessions = await getItem(STORAGE_KEYS.COMPLETED_SESSIONS, []);
@@ -407,6 +435,17 @@ export default function App() {
         }
       }
       
+      // Navigate back to the source (calendar or history list)
+      setSelectedSession(null);
+      if (navigationContext.source === 'history') {
+        console.log('📍 Delete from history list - staying in history');
+        // Stay in history (list view)
+      } else {
+        console.log('📍 Delete from calendar - returning to calendar');
+        // Return to calendar
+        setCurrentScreen('calendar');
+      }
+      
       console.log('✅ Session and appointment deleted successfully');
     } catch (error) {
       console.error('❌ Failed to delete session/appointment:', error);
@@ -421,7 +460,7 @@ export default function App() {
           appointments={appointments}
           onAppointmentSelect={handleAppointmentSelect}
           completedAppointments={completedAppointments}
-          initialDateOffset={navigationContext.dateOffset || 0}
+          initialDateOffset={navigationContext.currentDateRange || navigationContext.dateOffset || 0}
           onAddSession={handleAddSession}
           onAddAppointment={handleAddAppointment}
           onDeleteAppointment={handleDeleteAppointment}
@@ -434,9 +473,13 @@ export default function App() {
           key={selectedAppointment?.id} // Force remount when appointment changes
           appointment={selectedAppointment}
           onSubmit={handleSessionSubmit}
-          // onBack={() => setCurrentScreen('calendar')}
-          onBack={() => navigationContext.source === 'history' ? 
-                setCurrentScreen('history') : setCurrentScreen('calendar')}
+          onBack={() => {
+            if (navigationContext.source === 'history') {
+              setCurrentScreen('history');
+            } else {
+              setCurrentScreen('calendar');
+            }
+          }}
           onDataChange={handleSessionDataChange}
         />
       )}
@@ -445,9 +488,13 @@ export default function App() {
           appointment={selectedAppointment}
           sessionData={sessionData}
           onSubmit={handleFinalSubmit}
-          // onBack={handleBackFromReviewSign}
-          onBack={() => navigationContext.source === 'history' ? 
-              setCurrentScreen('history') : handleBackFromReviewSign()}
+          onBack={() => {
+            if (navigationContext.source === 'history') {
+              setCurrentScreen('history');
+            } else {
+              handleBackFromReviewSign();
+            }
+          }}
         />
       )}
       {currentScreen === 'addSession' && (
@@ -462,6 +509,7 @@ export default function App() {
           onViewSession={handleViewSession}
           onDeleteSession={handleDeleteSession}
           initialSession={selectedSession}
+          navigationSource={navigationContext.source}
         />
       )}
     </>

@@ -21,7 +21,7 @@ import { getItem, setItem, STORAGE_KEYS } from '../services/storageService';
 
 const COMPLETED_SESSIONS_KEY = STORAGE_KEYS.COMPLETED_SESSIONS;
 
-export default function HistoryScreen({ onBack, onViewSession, onDeleteSession, initialSession }) {
+export default function HistoryScreen({ onBack, onViewSession, onDeleteSession, initialSession, navigationSource }) {
   const [sessions, setSessions] = useState([]);
   const [selectedSession, setSelectedSession] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -275,12 +275,16 @@ export default function HistoryScreen({ onBack, onViewSession, onDeleteSession, 
   };
 
   const handleBackFromDetail = () => {
-    // setSelectedSession(null);
-    // navigate back to calendar
-    if (onBack) {
-      onBack();
-    } else{
+    if (navigationSource === 'history') {
+      // Coming from history list - stay in history, just clear selected session
       setSelectedSession(null);
+    } else {
+      // Coming from calendar - navigate back to calendar
+      if (onBack) {
+        onBack();
+      } else {
+        setSelectedSession(null);
+      }
     }
   };
 

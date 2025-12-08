@@ -585,14 +585,8 @@ export default function CalendarScreen({
                 ]}
                 //onPress={() => onAppointmentSelect(appointment)}
                 onPress={() => {
-                  const context = {
-                    source: 'calendar',
-                    viewDate: appointment.date,
-                    viewMode: viewMode,
-                    dateOffset: currentDateRange
-                  };
                   setPreviewAppointment(appointment);
-                  setPreviewAppointmentContext(context);
+                  setPreviewAppointmentContext(currentDateRange);
                   setShowPreviewModal(true);
                 }}
                 activeOpacity={0.7}
@@ -751,7 +745,10 @@ export default function CalendarScreen({
 
       {/* Action Buttons */}
       <View style={styles.actionButtonsContainer}>
-        <TouchableOpacity style={styles.previousSessionButton} onPress={onViewHistory}>
+        <TouchableOpacity 
+          style={styles.previousSessionButton} 
+          onPress={() => onViewHistory(currentDateRange)}
+        >
           <MaterialIcons name="history" size={18} color={colors.primary} />
           <Text style={styles.previousSessionText}>Previous Session</Text>
         </TouchableOpacity>
@@ -880,7 +877,6 @@ export default function CalendarScreen({
                     style={styles.previewEnterButton}
                     onPress={() => {
                       setShowPreviewModal(false);
-                      //onAppointmentSelect(previewAppointment);
                       onAppointmentSelect(previewAppointment, previewAppointmentContext);
                     }}
                   >
