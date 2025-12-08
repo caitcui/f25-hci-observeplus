@@ -110,7 +110,7 @@ export default function SessionNoteScreen({ appointment, onSubmit, onBack, onDat
             setLastSaved(new Date(timestamp));
           }
           
-          console.log('✅ Loaded saved draft for session:', appointment?.id);
+          console.log('Loaded saved draft for session:', appointment?.id);
         } else {
           // Reset to defaults if no saved draft
           setNotes('The client was __________ because __________.\nThe client was __________ because __________.\nThe client was __________ because __________.');
@@ -326,7 +326,7 @@ export default function SessionNoteScreen({ appointment, onSubmit, onBack, onDat
         peopleCategory,
         actionsCategory,
       });
-      console.log('✅ Final save before submit');
+      console.log('Final save before submit');
     } catch (error) {
       console.error('Failed to save before submit:', error);
     }

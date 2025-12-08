@@ -55,13 +55,13 @@ export default function HistoryScreen({ onBack, onViewSession, onDeleteSession, 
           return dateB - dateA; // Newest first
         });
         setSessions(sorted);
-        console.log('✅ Loaded', sorted.length, 'completed sessions');
+        console.log('Loaded', sorted.length, 'completed sessions');
       } else {
         setSessions([]);
-        console.log('📝 No completed sessions found');
+        console.log('No completed sessions found');
       }
     } catch (error) {
-      console.error('❌ Failed to load sessions:', error);
+      console.error('Failed to load sessions:', error);
       Alert.alert('Error', 'Failed to load session history');
     } finally {
       setIsLoading(false);
@@ -324,9 +324,9 @@ export default function HistoryScreen({ onBack, onViewSession, onDeleteSession, 
                 setSelectedSession(null);
               }
               
-              console.log('✅ Session deleted successfully');
+              console.log('Session deleted successfully');
             } catch (error) {
-              console.error('❌ Failed to delete session:', error);
+              console.error('Failed to delete session:', error);
               Alert.alert('Error', 'Failed to delete session. Please try again.');
               // Reload sessions on error
               loadSessions();

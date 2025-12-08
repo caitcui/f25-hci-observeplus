@@ -34,7 +34,7 @@ export default function ReviewSignScreen({ appointment, sessionData, onSubmit, o
         const { signature } = await loadDraftSession(appointment?.id);
         if (signature) {
           setSignatureData(signature);
-          console.log('✅ Loaded saved signature');
+          console.log('Loaded saved signature');
         }
       } catch (error) {
         console.error('Failed to load saved signature:', error);
@@ -64,7 +64,7 @@ export default function ReviewSignScreen({ appointment, sessionData, onSubmit, o
     try {
       const signatureKey = STORAGE_KEYS.DRAFT_SIGNATURE(appointment?.id);
       await removeItem(signatureKey);
-      console.log('✅ Signature cleared');
+      console.log('Signature cleared');
     } catch (error) {
       console.error('Failed to clear signature:', error);
     }
@@ -79,7 +79,7 @@ export default function ReviewSignScreen({ appointment, sessionData, onSubmit, o
       try {
         const signatureKey = STORAGE_KEYS.DRAFT_SIGNATURE(appointment?.id);
         await setItem(signatureKey, signature);
-        console.log('✅ Signature saved');
+        console.log('Signature saved');
       } catch (error) {
         console.error('Failed to save signature:', error);
       }
