@@ -10,6 +10,8 @@ import {
   Alert,
   Modal,
   TextInput,
+  Platform,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors, fonts } from '../styles/theme';
@@ -36,6 +38,56 @@ export default function CalendarScreen({
     title: '',
     clients: '',
   });
+
+  // Helper to normalize and validate time
+  const normalizeTime = (timeStr) => {
+    if (!timeStr) return null;
+    let normalized = timeStr.trim().toUpperCase();
+    normalized = normalized.replace(/:/g, '');
+    normalized = normalized.replace(/(\d+)(AM|PM)/i, '$1 $2');
+    return normalized.trim();
+  };
+
+  // Helper to validate time format (7 AM to 5 PM)
+  const isValidTime = (timeStr) => {
+    if (!timeStr) return false;
+    const normalized = normalizeTime(timeStr);
+    const timeRegex = /^(\d{1,2})\s*(AM|PM)$/i;
+    if (!timeRegex.test(normalized)) return false;
+    
+    const match = normalized.match(/^(\d{1,2})\s*(AM|PM)$/i);
+    const hour = parseInt(match[1]);
+    const period = match[2].toUpperCase();
+    
+    // 7 AM to 5 PM validation
+    if (period === 'AM') {
+      return hour >= 7 && hour <= 12;
+    } else {
+      return hour >= 1 && hour <= 5;
+    }
+  };
+
+  // Helper to compare times
+  const isEndTimeAfterStart = (startTimeStr, endTimeStr) => {
+    const startNorm = normalizeTime(startTimeStr);
+    const endNorm = normalizeTime(endTimeStr);
+    
+    const startMatch = startNorm.match(/^(\d{1,2})\s*(AM|PM)$/i);
+    const endMatch = endNorm.match(/^(\d{1,2})\s*(AM|PM)$/i);
+    
+    let startHour = parseInt(startMatch[1]);
+    let endHour = parseInt(endMatch[1]);
+    const startPeriod = startMatch[2].toUpperCase();
+    const endPeriod = endMatch[2].toUpperCase();
+    
+    // Convert to 24-hour
+    if (startPeriod === 'PM' && startHour !== 12) startHour += 12;
+    if (startPeriod === 'AM' && startHour === 12) startHour = 0;
+    if (endPeriod === 'PM' && endHour !== 12) endHour += 12;
+    if (endPeriod === 'AM' && endHour === 12) endHour = 0;
+    
+    return endHour > startHour;
+  };
 
   // Parse time string to get start time in minutes from 7 AM (e.g., "8 AM - 10 AM" -> 60)
   const parseStartMinutes = (timeStr) => {
@@ -219,10 +271,31 @@ export default function CalendarScreen({
       return;
     }
 
+    const timeParts = editForm.time.split(' - ');
+    if (timeParts.length !== 2) {
+      Alert.alert('Invalid Time', 'Time must be in format: "8 AM - 10 AM"');
+      return;
+    }
+
+    const startTime = timeParts[0].trim();
+    const endTime = timeParts[1].trim();
+
+    if (!isValidTime(startTime) || !isValidTime(endTime)) {
+      Alert.alert('Invalid Time', 'Times must be between 7 AM and 5 PM\n\nExamples: "8 AM", "2 PM"');
+      return;
+    }
+
+    if (!isEndTimeAfterStart(startTime, endTime)) {
+      Alert.alert('Invalid Time', 'End time must be after start time');
+      return;
+    }
+
+    const normalizedTime = `${normalizeTime(startTime)} - ${normalizeTime(endTime)}`;
+
     const updated = {
       ...editingAppointment,
       date: editForm.date,
-      time: editForm.time,
+      time: normalizedTime,
       title: editForm.title,
       clients: editForm.clients,
     };
@@ -463,7 +536,7 @@ export default function CalendarScreen({
                     {isCompleted ? (
                       // Show only checkmark when completed
                       <View style={styles.iconCheckCompleted}>
-                        <MaterialIcons name="check" size={11} color={colors.primary} />
+                        <MaterialIcons name="check" size={16} color={colors.primary} />
                       </View>
                     ) : (
                       // Show edit and delete buttons when not completed
@@ -475,13 +548,13 @@ export default function CalendarScreen({
                             handleEdit(appointment);
                           }}
                         >
-                          <MaterialIcons name="edit" size={12} color={colors.primary} />
+                          <MaterialIcons name="edit" size={18} color={colors.primary} />
                         </TouchableOpacity>
                         <TouchableOpacity
                           style={styles.iconDelete}
                           onPress={(e) => handleDelete(appointment.id, e)}
                         >
-                          <MaterialIcons name="delete-outline" size={12} color={colors.primary} />
+                          <MaterialIcons name="delete-outline" size={18} color={colors.primary} />
                         </TouchableOpacity>
                       </>
                     )}
@@ -624,6 +697,12 @@ export default function CalendarScreen({
         animationType="slide"
         onRequestClose={() => setShowEditModal(false)}
       >
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={{ flex: 1 }}
+          keyboardVerticalOffset={0}
+        >
+
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
@@ -680,6 +759,7 @@ export default function CalendarScreen({
             </ScrollView>
           </View>
         </View>
+        </KeyboardAvoidingView>
       </Modal>
     </SafeAreaView>
   );
@@ -783,6 +863,7 @@ const styles = StyleSheet.create({
     borderRightWidth: 0,
     paddingRight: 8,
     marginRight: 8, // White space after time column
+    paddingTop: 12,
     backgroundColor: '#F0F9FF', // Exact light blue shade
   },
   calendarHeaderRow: {
@@ -813,22 +894,22 @@ const styles = StyleSheet.create({
     paddingTop: 0,
   },
   timeLabel: {
-    fontSize: 11,
+    fontSize: 15,
     fontWeight: fonts.medium,
     color: colors.accent3,
     textAlign: 'right',
-    lineHeight: 11,
+    lineHeight: 15,
   },
   dayEventsColumn: {
     flex: 1,
-    marginRight: 8, // White space between day columns
+    marginRight: 0,
     borderRightWidth: 0,
     paddingRight: 0,
     backgroundColor: '#F0F9FF', // Exact light blue shade matching the design
   },
   dateHeaderColumn: {
     alignItems: 'center',
-    paddingVertical: 10,
+    paddingVertical: 12,
     marginBottom: 4,
     borderBottomWidth: 0,
   },
@@ -869,10 +950,10 @@ const styles = StyleSheet.create({
     color: colors.primary, // White text on blue background
   },
   appointmentCount: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: fonts.medium,
     color: colors.accent3,
-    marginTop: 2,
+    marginTop: 0,
   },
   timeSlotsContainer: {
     position: 'relative',
@@ -884,17 +965,18 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0,
   },
   appointmentBlockWeek: {
-    padding: 6,
+    padding: 8,
+    minHeight:70,
   },
   appointmentContentWeek: {
     paddingRight: 0,
   },
   iconCheckCompletedWeek: {
     position: 'absolute',
-    top: 4,
-    right: 4,
+    bottom: 6,
+    right: 6,
     backgroundColor: '#DC2626',
-    borderRadius: 8,
+    borderRadius: 10,
     width: 16,
     height: 16,
     justifyContent: 'center',
@@ -916,19 +998,19 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   appointmentTime: {
-    fontSize: 10,
+    fontSize: 13,
     fontWeight: fonts.semiBold,
     color: colors.primary,
     marginBottom: 2,
   },
   appointmentTitle: {
-    fontSize: 12,
+    fontSize: 15,
     fontWeight: fonts.bold,
     color: colors.primary,
     marginBottom: 2,
   },
   appointmentClient: {
-    fontSize: 11,
+    fontSize: 15,
     fontWeight: fonts.medium,
     color: colors.primary,
   },
@@ -943,24 +1025,24 @@ const styles = StyleSheet.create({
   iconCheckCompleted: {
     backgroundColor: '#DC2626',
     borderRadius: 10,
-    width: 18,
-    height: 18,
+    width: 26,
+    height: 26,
     justifyContent: 'center',
     alignItems: 'center',
   },
   iconEdit: {
     backgroundColor: colors.secondary,
-    borderRadius: 8,
-    width: 18,
-    height: 18,
+    borderRadius: 10,
+    width: 26,
+    height: 26,
     justifyContent: 'center',
     alignItems: 'center',
   },
   iconDelete: {
     backgroundColor: colors.secondary,
-    borderRadius: 8,
-    width: 18,
-    height: 18,
+    borderRadius: 10,
+    width: 26,
+    height: 26,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -1045,7 +1127,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   modalLabel: {
-    fontSize: 12,
+    fontSize: 16,
     fontWeight: fonts.semiBold,
     color: colors.accent3,
     marginBottom: 8,
@@ -1056,7 +1138,7 @@ const styles = StyleSheet.create({
     borderColor: colors.accent3,
     borderRadius: 8,
     padding: 12,
-    fontSize: 14,
+    fontSize: 16,
     color: colors.accent3,
   },
   modalSaveButton: {
@@ -1085,7 +1167,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   weekDayText: {
-    fontSize: 12,
+    fontSize: 16,
     fontWeight: fonts.semiBold,
     color: colors.accent3,
   },
@@ -1100,7 +1182,8 @@ const styles = StyleSheet.create({
   },
   monthDay: {
     width: '14.28%',
-    aspectRatio: 1,
+    // aspectRatio: 1,
+    minHeight: 100,
     padding: 4,
     borderWidth: 1,
     borderColor: colors.accent2,
@@ -1119,7 +1202,7 @@ const styles = StyleSheet.create({
     opacity: 0.3,
   },
   monthDayNumber: {
-    fontSize: 14,
+    fontSize: 18,
     fontWeight: fonts.medium,
     color: colors.accent3,
   },
@@ -1135,12 +1218,12 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accent1,
     borderRadius: 4,
     paddingHorizontal: 4,
-    paddingVertical: 2,
+    paddingVertical: 6,
     position: 'relative',
     zIndex: 3,
   },
   monthDayApptsText: {
-    fontSize: 10,
+    fontSize: 16,
     fontWeight: fonts.semiBold,
     color: colors.primary,
   },
